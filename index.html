@@ -173,6 +173,8 @@ table.t th,table.t td{padding:8px 6px;border-bottom:1px solid var(--line);text-a
 .trfab{position:fixed;z-index:56;left:14px;bottom:92px;width:52px;height:52px;border-radius:50%;border:0;background:#0e6b5b;color:#fff;font-size:1.5rem;line-height:1;display:flex;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(0,0,0,.3);cursor:pointer;padding:0}
 .trfab.on{background:#fff;color:#0e6b5b;outline:3px solid #0e6b5b}
 .trfab:active{transform:scale(.94)}
+
+.pgw{margin:10px 0;overflow-x:auto;background:#fff;border:1px solid var(--line);border-radius:10px;padding:6px}.pgn{text-align:center;margin-bottom:4px;direction:rtl}.pgi{display:block;width:100%;height:auto;min-height:300px;background:#f4f4f4}.pgi.z{width:230%;max-width:none}
 </style>
 <link rel="manifest" href="manifest.json?v=6"><meta name="theme-color" content="#0e6b5b"><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="DipIFRS"></head>
 </head>
@@ -2196,20 +2198,21 @@ function viewStd(){
   });
   return h;
 }
-const SUBS=[['ov','نظرة عامة'],['learn','الشرح والملخص'],['mem','احفظ'],['q','Quiz'],['book','Book Practice'],['mock','Test']];
+const SUBS=[['ov','نظرة عامة'],['learn','الشرح والملخص'],['mem','احفظ'],['q','Quiz'],['book','Book Practice'],['mock','Test'],['pdf','PDF']];
+const PGN=[16,20,20,32,14,22,14,14,26,50,20,10,18,20,22,18,16,14,14,12,46,24];
+function fab(c,open,act){const t=open?'إخفاء الترجمة العربية':'ترجم كل النصوص بالعربي';return '<button class="trfab'+(open?' on':'')+'" data-act="'+act+'" data-id="'+c.id+'" aria-label="'+t+'" title="'+t+'">🌐</button>'}
 function viewCh(){
   const c=chById(S.chId); if(!c) return '';
   let h='<button class="btn sm ghost" data-act="backStd">← كل المعايير</button>';
   h+='<div style="margin:10px 0 6px"><span class="pill num">Part '+c.part+'</span> <span class="pill num">Chapter '+c.id+'</span> '+''+'</div>';
   h+='<h2 class="en" style="margin:4px 0 0;font-size:1.3rem">'+esc(c.title)+'</h2><div class="muted">'+esc(c.ar)+'</div><div class="std en small muted" style="margin:2px 0 10px">'+esc(c.std)+'</div>';
-  h+='<div class="seg" role="tablist">'+SUBS.map(s=>'<button role="tab" aria-selected="'+(S.sub===s[0])+'" data-act="sub" data-s="'+s[0]+'">'+s[1]+'</button>').join('')+'</div>';
-  h+= S.sub==='ov'?subOv(c): S.sub==='learn'?subLearn(c): S.sub==='mem'?subMem(c): S.sub==='q'?subQ(c): S.sub==='book'?subBook(c): subMock(c);
+  h+='<div class="seg" role="tablist">'+SUBS.filter(s=>s[0]!=='pdf'||c.id<=22).map(s=>'<button role="tab" aria-selected="'+(S.sub===s[0])+'" data-act="sub" data-s="'+s[0]+'">'+s[1]+'</button>').join('')+'</div>';
+  h+= S.sub==='ov'?subOv(c): S.sub==='learn'?subLearn(c): S.sub==='mem'?subMem(c): S.sub==='q'?subQ(c): S.sub==='book'?subBook(c): S.sub==='pdf'?subPdf(c): subMock(c);
   return h;
 }
 function subLearn(c){
   const open=S.showAr[c.id];
-  let h='<div class="hint">📖 الشرح بالإنجليزي زي الامتحان. اضغط أي كلمة تترجمها.</div><div class="en-block tr en">'+esc(c.sum.en)+'</div>';
-  h+='<div class="row" style="margin:10px 0"><button class="btn pri" data-act="toggleAr" data-id="'+c.id+'">'+(open?'إخفاء الترجمة العربي':'🌐 ترجمة الشرح بالعربي')+'</button></div>';
+  let h=fab(c,open,'toggleAr')+'<div class="hint">📖 الشرح بالإنجليزي زي الامتحان. اضغط أي كلمة تترجمها.</div><div class="en-block tr en">'+esc(c.sum.en)+'</div>';
   if(open) h+='<div class="ar-block">'+esc(c.sum.ar)+'</div>';
   h+='<h2>أهم النقط اللي تحفظها</h2><div class="stack">'+c.mem.map(m=>'<div class="mem"><div class="grow"><div class="en tr">'+esc(m[0])+'</div>'+(open?'<div class="arx">'+esc(m[1])+'</div>':'')+'</div></div>').join('')+'</div>';
   const b=bookCh(c.id);
@@ -2217,10 +2220,16 @@ function subLearn(c){
   h+='<div class="row" style="margin-top:18px"><button class="btn pri grow" data-act="studied" data-id="'+c.id+'">'+(DB.studied[c.id]?'✓ اتذاكر (اضغط للإلغاء)':'علّم إني خلصت المذاكرة')+'</button><button class="btn grow" data-act="sub" data-s="mem">ابدأ الحفظ ←</button></div>';
   return h;
 }
+function subPdf(c){
+  const n=PGN[c.id-1]||0, d=('0'+c.id).slice(-2); let h='<div class="hint">📄 صفحات الفصل من الكتاب (للاطلاع). اضغط على الصفحة تكبّرها، واضغط تاني ترجعها.</div>';
+  h+='<div class="row" style="margin:8px 0"><span class="small muted grow">'+n+' صفحة</span><button class="btn sm" data-act="pdfOff" data-id="'+c.id+'">⬇ حمّل الفصل للأوفلاين</button></div><div id="pdfst" class="small muted"></div>';
+  for(let k=1;k<=n;k++) h+='<div class="pgw"><div class="pgn small muted">صفحة '+k+' / '+n+'</div><img class="pgi" loading="lazy" decoding="async" alt="Chapter '+c.id+' page '+k+'" src="pdf/'+d+'/'+('0'+k).slice(-2)+'.webp" data-act="pgZ"></div>';
+  return h;
+}
 function subMem(c){
-  const done=DB.mem[c.id]||[]; let h='<div class="hint">اضغط على الكارت لما تحفظ النقطة. اضغط 🌐 لترجمتها.</div><div class="prog"><i style="width:'+pct(done.length,c.mem.length)+'%"></i></div><div class="small muted" style="margin:6px 0 12px">'+done.length+' من '+c.mem.length+' محفوظة</div><div class="stack">';
+  const done=DB.mem[c.id]||[], open=S.showAr[c.id]; let h=fab(c,open,'toggleAr')+'<div class="hint">اضغط على الكارت لما تحفظ النقطة. اضغط 🌐 لترجمتها.</div><div class="prog"><i style="width:'+pct(done.length,c.mem.length)+'%"></i></div><div class="small muted" style="margin:6px 0 12px">'+done.length+' من '+c.mem.length+' محفوظة</div><div class="stack">';
   c.mem.forEach((m,i)=>{const d=done.includes(i);
-    h+='<div class="mem'+(d?' done':'')+'"><button class="chk" data-act="memTog" data-id="'+c.id+'" data-i="'+i+'" aria-label="حفظتها" aria-pressed="'+d+'">'+(d?'✓':'')+'</button><div class="grow"><div class="en tr">'+esc(m[0])+'</div><details style="margin-top:6px"><summary class="small muted" style="cursor:pointer">🌐 بالعربي</summary><div class="arx">'+esc(m[1])+'</div></details></div></div>';});
+    h+='<div class="mem'+(d?' done':'')+'"><button class="chk" data-act="memTog" data-id="'+c.id+'" data-i="'+i+'" aria-label="حفظتها" aria-pressed="'+d+'">'+(d?'✓':'')+'</button><div class="grow"><div class="en tr">'+esc(m[0])+'</div>'+(open?'<div class="arx">'+esc(m[1])+'</div>':'<details style="margin-top:6px"><summary class="small muted" style="cursor:pointer">🌐 بالعربي</summary><div class="arx">'+esc(m[1])+'</div></details>')+'</div></div>';});
   h+='</div><div class="row" style="margin-top:16px"><button class="btn pri grow" data-act="sub" data-s="q">ابدأ الأسئلة ←</button></div>';
   return h;
 }
@@ -2455,6 +2464,8 @@ const A={
    const jobs=[['cmpTr','Table: '+x.cmp.h.join(' | ')+'\n'+x.cmp.r.map(r=>r.join(' | ')).join('\n')],['keyTr',x.key.map(k=>'Q: '+k[0]+'\nA: '+k[1]).join('\n\n')]];
    for(const j of jobs){const b=document.getElementById(j[0]); if(!b) continue; b.hidden=false; b.textContent='بترجم…'; try{b.textContent=await aiTr(j[1],'t')}catch(e){b.innerHTML=fallbackHtml(j[1])}}},
  async trBook(d,el){const box=el.closest('.in'); const btns=$$('.trp',box).filter(b=>{const o=b.nextElementSibling;return !(o&&!o.hidden&&o.dataset.ok)}); el.disabled=true; el.textContent='بترجم الصفحة كلها…'; for(const b of btns){await A.trPara(b.dataset,b)} el.textContent='تمت الترجمة ✓'; el.disabled=false},
+ pgZ(d,el){el.classList.toggle('z')},
+ async pdfOff(d,el){const n=PGN[+d.id-1],c=('0'+d.id).slice(-2),st=$('#pdfst');let ok=0;el.disabled=true;for(let k=1;k<=n;k++){try{const r=await fetch('pdf/'+c+'/'+('0'+k).slice(-2)+'.webp');if(r.ok)ok++}catch(e){}st.textContent='تحميل '+k+' / '+n+'…'}st.textContent=ok===n?'تم ✓ الفصل متاح أوفلاين':'اتحمّل '+ok+' من '+n+' (تأكد من النت وجرب تاني)';el.disabled=false},
  toggleAr(d){S.showAr[d.id]=!S.showAr[d.id];render()},
  studied(d){DB.studied[d.id]=!DB.studied[d.id];save();render()},
  memTog(d){const a=DB.mem[d.id]=DB.mem[d.id]||[],i=+d.i,k=a.indexOf(i);if(k>=0)a.splice(k,1);else a.push(i);save();render()},
