@@ -144,6 +144,13 @@ table.t th,table.t td{padding:8px 6px;border-bottom:1px solid var(--line);text-a
 .lk span{display:block;font-size:.72rem;font-weight:700;color:var(--muted);letter-spacing:.02em}
 .lk.fx{background:var(--accent-soft);border-radius:10px;padding:8px 10px}
 .lk.fx span{color:var(--accent)}
+
+.trq{display:flex;flex-direction:column;gap:8px}
+.trq-q{font-weight:700;line-height:1.8}
+.trq-o{display:flex;gap:10px;align-items:flex-start;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:8px 10px;line-height:1.7}
+.trq-o.ok{border-color:var(--good);background:var(--good-soft)}
+.trq-o .L{flex:none;font-family:var(--f-num);font-weight:700;color:var(--muted);min-width:1.2em}
+.trq-e{margin-top:4px;color:var(--muted);line-height:1.8}
 </style>
 <link rel="manifest" href="manifest.json"><meta name="theme-color" content="#0e6b5b"><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="DipIFR"></head>
 <body>
@@ -1458,7 +1465,10 @@ const pageOf=n=>n?Math.max(1,(+n)-23):'';
 
 /* ---------- translation ---------- */
 let SM; let smTried=false;
-async function getSample(){ if(smTried) return SM; smTried=true; try{ if(window.claude&&window.claude.use) SM=await window.claude.use('sample'); }catch(e){SM=null} return SM; }
+const KEYLS='dipifr-apikey';
+function apiKey(){try{return localStorage.getItem(KEYLS)||''}catch(e){return ''}}
+function keySample(){const k=apiKey(); if(!k) return null; return async(prompt)=>{const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'content-type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},body:JSON.stringify({model:'claude-haiku-5-5',max_tokens:1500,messages:[{role:'user',content:prompt}]})}); if(!r.ok){const e=new Error('api'+r.status); e.code=r.status===429?'rate_limited':'api'; throw e} const j=await r.json(); return {text:(j.content||[]).map(x=>x.text||'').join('')}}}
+async function getSample(){ if(!smTried){ smTried=true; try{ if(window.claude&&window.claude.use) SM=await window.claude.use('sample'); }catch(e){SM=null} } return SM||keySample(); }
 function glossLookup(w){
   const G=window.GLOSS; let k=w.toLowerCase().replace(/[’']s$/,''); if(G[k]) return G[k];
   const tries=[k.replace(/ies$/,'y'),k.replace(/es$/,''),k.replace(/s$/,''),k.replace(/ed$/,''),k.replace(/ed$/,'e'),k.replace(/ing$/,''),k.replace(/ing$/,'e'),k.replace(/ly$/,''),k.replace(/d$/,'')];
@@ -1471,12 +1481,13 @@ async function aiTr(text,kind,ctx){
   const sm=await getSample(); if(!sm) throw new Error('na');
   let prompt;
   if(kind==='w') prompt='Translate the English word or phrase "'+text+'" into Arabic as used in IFRS / accounting. Context: "'+(ctx||'')+'". Reply with ONLY the Arabic meaning (max 8 words) on the first line, and a one-line Arabic explanation on the second line.';
+  else if(kind==='m') prompt='Translate this IFRS / accounting multiple-choice question into clear Arabic (Egyptian-friendly Modern Standard Arabic). The input has one item per line. Output EXACTLY the same number of lines, in the same order, one Arabic translation per input line, with NO numbering, NO labels, NO blank lines and NO extra text. Keep standard names (IFRS 15, IAS 16) and numbers/currency exactly; write key English terms in parentheses only when really needed.\n\n'+text;
   else prompt='Translate the following IFRS / accounting text into clear Arabic (simple Modern Standard Arabic, Egyptian-friendly). Keep standard names (e.g. IFRS 15, IAS 16) and key English terms in parentheses after the Arabic term. Keep numbers and symbols exactly. Output ONLY the translation, no comments.\n\n'+text;
   const r=await sm(prompt,{modelTier:'quick'});
   const out=(r&&r.text||'').trim(); if(!out) throw new Error('empty');
   DB.tr[key]=out; const ks=Object.keys(DB.tr); if(ks.length>400) delete DB.tr[ks[0]]; save(); return out;
 }
-function errMsg(e){return e&&e.message==='na'?'الترجمة التلقائية مش متاحة في العرض ده. القاموس الداخلي لسه شغال.':(e&&e.code==='rate_limited'?'كتير طلبات ورا بعض، استنى لحظة وجرّب تاني.':'تعذرت الترجمة، جرّب تاني.')}
+function errMsg(e){return e&&e.message==='na'?'الترجمة التلقائية مش متاحة هنا. افتح تبويب «تقدمي» وضيف مفتاح API للترجمة، أو افتح البرنامج من رابط Claude. القاموس الداخلي لسه شغال.':(e&&e.code==='api'?'مفتاح API غلط أو مش شغال. راجعه في تبويب «تقدمي».':(e&&e.code==='rate_limited'?'كتير طلبات ورا بعض، استنى لحظة وجرّب تاني.':'تعذرت الترجمة، جرّب تاني.'))}
 const sheet=$('#sheet');
 function openSheet(html){sheet.innerHTML=html+'<div class="row" style="margin-top:12px"><button class="btn grow" data-act="closeSheet">إغلاق</button></div>';sheet.classList.add('open')}
 function closeSheet(){sheet.classList.remove('open')}
@@ -1492,6 +1503,19 @@ function wordFromPoint(x,y){
   while(a>0&&re.test(t[a-1]))a--; while(b<t.length&&re.test(t[b]))b++;
   const w=t.slice(a,b).replace(/^['’\-]+|['’\-]+$/g,''); if(w.length<2) return null;
   return {w,sent:sentenceAt(t,a,b)};
+}
+
+async function trMcq(q,withExpl){
+  const lines=[q[0],...q[1].map(x=>x)]; if(withExpl&&q[3]) lines.push(q[3]);
+  const out=await aiTr(lines.map(x=>String(x).replace(/\n+/g,' ')).join('\n'),'m');
+  const arr=out.split('\n').map(x=>x.trim()).filter(Boolean);
+  return arr;
+}
+function mcqArHtml(q,arr,withExpl){
+  const letters='ABCD'; let h='<div class="trq"><div class="trq-q" dir="rtl">'+esc(arr[0]||'')+'</div>';
+  q[1].forEach((o,i)=>{h+='<div class="trq-o'+(i===q[2]?' ok':'')+'" dir="rtl"><span class="L">'+letters[i]+'</span><span>'+esc(arr[1+i]||'')+'</span></div>'});
+  if(withExpl&&q[3]) h+='<div class="trq-e" dir="rtl">'+esc(arr[5]||'')+'</div>';
+  return h+'</div>';
 }
 async function showWord(w,sent){
   const g=glossLookup(w);
@@ -1711,7 +1735,8 @@ function viewProg(){
   let h='<div class="stack"><div class="card"><div class="row"><div class="grow"><div class="muted small">معايير اتذاكرت</div><div class="score num">'+st+'<span class="muted" style="font-size:1rem"> / '+CH.length+'</span></div></div><div class="grow"><div class="muted small">متوسط أفضل نتائج MCQ</div><div class="score num">'+avg+'%</div></div></div><div class="prog" style="margin-top:8px"><i style="width:'+pct(st,CH.length)+'%"></i></div><div class="small muted" style="margin-top:8px">نقط محفوظة: '+mm+' من '+mt+'</div></div>';
   h+='<div class="card scroll-x"><table class="t"><thead><tr><th>#</th><th>المعيار</th><th>MCQ</th><th>حفظ</th></tr></thead><tbody>'+CH.map(c=>{const m=DB.mcq[c.id];return '<tr><td class="num">'+c.id+'</td><td class="en"><button class="btn sm ghost" data-act="openCh" data-id="'+c.id+'">'+esc(c.title.length>38?c.title.slice(0,36)+'…':c.title)+'</button></td><td class="num">'+(m?m.best+'/'+m.total:'—')+'</td><td class="num">'+(DB.mem[c.id]||[]).length+'/'+c.mem.length+'</td></tr>'}).join('')+'</tbody></table></div>';
   const kv=Object.entries(DB.kit); if(kv.length) h+='<div class="card"><b>أسئلة Exam Kit اللي حليتها</b><div class="small muted" style="margin-top:6px">'+kv.map(([n,r])=>'Q'+n+': '+r.score+'/25').join(' · ')+'</div></div>';
-  h+='<button class="btn" data-act="reset">مسح كل التقدم</button></div>';
+  h+='<div class="card"><b>الترجمة التلقائية خارج Claude</b><div class="small muted" style="margin:6px 0">لو فتحت البرنامج من GitHub أو من الشاشة الرئيسية، الترجمة محتاجة مفتاح API بتاعك من Anthropic. المفتاح بيتخزن على جهازك بس، وكل ترجمة بتتحسب على حسابك.</div><div class="field"><label for="apik">مفتاح API</label><input id="apik" type="password" autocomplete="off" placeholder="sk-ant-..." value="'+esc(apiKey())+'"></div><div class="row" style="margin-top:8px"><button class="btn pri" data-act="saveKey">حفظ</button><button class="btn" data-act="clearKey">مسح</button></div></div>'+
+    '<button class="btn" data-act="reset">مسح كل التقدم</button></div>';
   return h;
 }
 
@@ -1820,7 +1845,7 @@ const A={
  pRestart(){S.p=null;render()},
  pWrong(){const c=curCh();const first=c.mcq.findIndex((x,i)=>S.p.ans[i]!==x[2]);S.p.done=false;S.p.i=Math.max(0,first);render()},
  async trExpl(){const c=curCh(),q=c.mcq[S.p.i],box=$('#expTr');box.hidden=false;box.textContent='بترجم…';
-   try{box.textContent=await aiTr(q[0]+'\nA) '+q[1][0]+'\nB) '+q[1][1]+'\nC) '+q[1][2]+'\nD) '+q[1][3]+'\nExplanation: '+q[3],'t')}catch(e){box.textContent=errMsg(e)}},
+   try{const arr=await trMcq(q,true);box.innerHTML=mcqArHtml(q,arr,true)}catch(e){box.textContent=errMsg(e)}},
  async trPara(d,el){const box=el.nextElementSibling,txt=PARA_STORE[d.t];if(!box.hidden&&box.dataset.ok){box.hidden=true;return}box.hidden=false;box.textContent='بترجم…';
    try{box.textContent=await aiTr(txt,'t');box.dataset.ok='1'}catch(e){box.textContent=errMsg(e)}},
  async trSent(){const s=sheet.dataset.s;const x=$('#wx');x.style.display='block';x.textContent='بترجم…';try{x.textContent=await aiTr(s,'t')}catch(e){x.textContent=errMsg(e)}},
@@ -1845,7 +1870,7 @@ const A={
  startEasW(d){startWritten([{kind:'eas',i:+d.i}],0)},
  /* runner */
  rPick(d){const R=S.run;R.ans[R.i]=+d.i;renderRun()},rNext(){S.run.i++;renderRun()},rPrev(){S.run.i--;renderRun()},
- rTr(){const R=S.run,it=R.items[R.i],q=chById(it.ch).mcq[it.i];showText(q[0]+'\nA) '+q[1][0]+'\nB) '+q[1][1]+'\nC) '+q[1][2]+'\nD) '+q[1][3])},
+ async rTr(){const R=S.run,it=R.items[R.i],q=chById(it.ch).mcq[it.i];openSheet('<div id="wx" class="ar-block" style="margin-top:0"><span class="muted">بترجم…</span></div>');try{const arr=await trMcq(q,false);$('#wx').innerHTML=mcqArHtml(q,arr,false)}catch(e){$('#wx').textContent=errMsg(e)}},
  rFlag(){const R=S.run;R.flag[R.i]=!R.flag[R.i];renderRun()},
  rFinish(){const R=S.run,un=R.items.length-Object.keys(R.ans).length;if(un&&!confirmDlg('فاضل '+un+' سؤال من غير إجابة. تسلّم؟',()=>finishMcq()))return;if(!un)finishMcq()},
  runPal(){const R=S.run;openSheet('<h3>الأسئلة</h3><div class="pal">'+R.items.map((it,i)=>'<button class="'+(R.ans[i]!=null?'a ':'')+(R.flag[i]?'f':'')+'" data-act="rGo" data-i="'+i+'">'+(i+1)+'</button>').join('')+'</div>')},
@@ -1858,6 +1883,8 @@ const A={
  mShow(){confirmDlg('تظهر الإجابات دلوقتي وتوقف الوقت؟',()=>{clearInterval(S.run.iv);S.run.show=true;renderRun()})},
  mScore(d,el){S.run.scores[S.run.qi]=el.value},
  mFinish(){const R=S.run;const tot=Object.values(R.scores).reduce((a,b)=>a+Math.min(25,+b||0),0);DB.mock[R.m.n]={score:tot,at:Date.now()};save();openSheet('<div style="text-align:center"><div class="score '+(tot>=50?'big-ok':'big-bad')+'">'+tot+' / 100</div><div>'+(tot>=50?'ناجح (حد النجاح 50%)':'تحت حد النجاح 50%')+'</div></div>');stopRunKeepSheet()},
+ saveKey(){try{localStorage.setItem(KEYLS,($('#apik').value||'').trim())}catch(e){} openSheet('<div style="text-align:center">اتحفظ المفتاح ✓</div>')},
+ clearKey(){try{localStorage.removeItem(KEYLS)}catch(e){} render()},
  reset(){confirmDlg('تمسح كل التقدم والترجمات المحفوظة؟',()=>{DB={studied:{},mcq:{},mem:{},kit:{},mock:{},quiz:{},tr:{},wrong:{}};save();render()})}
 };
 function stopRunKeepSheet(){clearInterval(S.run.iv);S.run=null;$('#runner').hidden=true;$('#runner').innerHTML='';render()}
