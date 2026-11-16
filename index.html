@@ -157,7 +157,7 @@ table.t th,table.t td{padding:8px 6px;border-bottom:1px solid var(--line);text-a
 <header class="top"><h1><span id="ttl">المعايير</span><span class="sub" id="sub"></span></h1></header>
 <main id="main"></main>
 <nav class="bar" aria-label="التنقل">
-<button data-tab="std" aria-current="true">📚 المعايير</button>
+<button data-tab="std" aria-current="true">📚 IFRS</button>
 <button data-tab="eas" aria-current="false">🇪🇬 المصرية</button>
 <button data-tab="exam" aria-current="false">📝 الاختبارات</button>
 <button data-tab="prog" aria-current="false">📈 تقدمي</button>
@@ -1567,7 +1567,7 @@ function chBadge(c){
 
 /* ---------- views ---------- */
 function viewStd(){
-  let h='<div class="note" style="margin-bottom:6px">اضغط على أي كلمة إنجليزي في أي نص لترجمتها. وظلّل جملة عشان تترجمها كلها.</div>';
+  let h='';
   ['A','B','C','D'].forEach(p=>{
     h+='<div class="part"><b>'+p+'</b><span>'+esc(PARTS_AR[p])+'</span></div><div class="stack">';
     CH.filter(c=>c.part===p).forEach(c=>{
@@ -1577,7 +1577,7 @@ function viewStd(){
   });
   return h;
 }
-const SUBS=[['ov','نظرة عامة'],['learn','الشرح والملخص'],['mem','احفظ'],['q','أسئلة'],['book','أسئلة الكتب'],['mock','نماذج امتحان']];
+const SUBS=[['ov','نظرة عامة'],['learn','الشرح والملخص'],['mem','احفظ'],['q','Quiz'],['book','Book Practice'],['mock','Exams']];
 function viewCh(){
   const c=chById(S.chId); if(!c) return '';
   let h='<button class="btn sm ghost" data-act="backStd">← كل المعايير</button>';
