@@ -157,6 +157,11 @@ table.t th,table.t td{padding:8px 6px;border-bottom:1px solid var(--line);text-a
 .chcard .chr{direction:ltr;align-items:flex-end;min-width:4.2rem;text-align:right}.chcard .chr b{font-family:var(--f-num);font-weight:900;font-size:.95rem;line-height:1.25;color:#000;white-space:nowrap}
 .gl-row{padding:5px 0;border-bottom:1px dashed var(--line,#ddd);font-size:.92rem}.gl-row b{font-weight:700;margin-inline-end:4px}
 .gl-row{padding:5px 0;border-bottom:1px dashed #ccc;font-size:.92rem}.gl-row b{font-weight:700;margin-inline-end:4px}
+
+.inp{padding:10px 12px;border:1px solid #cfd8d4;border-radius:10px;font:inherit;background:#fff}
+.gl-h{position:sticky;top:0;background:var(--bg,#f4f6f5);font-weight:900;padding:6px 4px;margin-top:8px;color:#0e6b5b}
+.gl-it{display:flex;justify-content:space-between;gap:12px;padding:9px 4px;border-bottom:1px solid #e3e8e5;font-size:.95rem}
+.gl-it b{font-weight:700;flex:0 0 46%}.gl-it span{flex:1;text-align:right}
 </style>
 <link rel="manifest" href="manifest.json?v=6"><meta name="theme-color" content="#0e6b5b"><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="DipIFRS"></head>
 <body>
@@ -2158,8 +2163,23 @@ function chBadge(c){
 }
 
 /* ---------- views ---------- */
+function viewGl(){
+  const G=window.GLOSS||{}; const ks=Object.keys(G).filter(k=>/^[a-z0-9]/.test(k)).sort((a,b)=>a.localeCompare(b));
+  let h='<button class="btn sm ghost" data-act="backStd">← كل المعايير</button><div class="card" style="margin-top:10px"><h3>📖 قاموس المصطلحات</h3><div class="muted small">'+ks.length+' مصطلح إنجليزي ← عربي، يشتغل من غير نت. اكتب بالإنجليزي أو بالعربي.</div>'
+   +'<input id="glq" class="inp" type="search" placeholder="ابحث عن مصطلح… / search" style="width:100%;margin-top:10px" autocomplete="off">'
+   +'<div class="row" style="margin-top:8px"><button class="btn sm" data-act="glMode" data-m="all" id="glm1">الكل</button><button class="btn sm ghost" data-act="glMode" data-m="ph" id="glm2">العبارات المحاسبية فقط</button></div></div><div id="glist" class="gl-list">';
+  let cur='';
+  ks.forEach(k=>{const L=k[0].toUpperCase(); if(/[0-9]/.test(L)) {} if(L!==cur){cur=L;h+='<div class="gl-h" data-l="1">'+esc(L)+'</div>'}
+    h+='<div class="gl-it" data-k="'+esc(k)+'" data-p="'+(k.includes(' ')?1:0)+'" data-a="'+esc(G[k])+'"><b class="en" dir="ltr">'+esc(k)+'</b><span dir="rtl">'+esc(G[k])+'</span></div>'});
+  return h+'</div>';
+}
+function glFilter(){
+  const q=($('#glq')||{}).value||''; const t=q.trim().toLowerCase(); const ph=S.glPh; let any=false;
+  const items=$$('#glist .gl-it'); items.forEach(el=>{const ok=(!ph||el.dataset.p==='1')&&(!t||el.dataset.k.includes(t)||el.dataset.a.includes(q.trim())); el.style.display=ok?'':'none'});
+  let last=null; $$('#glist > *').forEach(el=>{ if(el.classList.contains('gl-h')){last=el;el.style.display='none'} else if(el.style.display!=='none'&&last){last.style.display=''} });
+}
 function viewStd(){
-  let h='';
+  let h='<button class="btn pri" data-act="openGl" style="width:100%;margin-bottom:12px">📖 قاموس المصطلحات (English ↔ عربي)</button>';
   ['A','B','C','D'].forEach(p=>{
     h+='<div class="part"><b>'+p+'</b><span>'+esc(PARTS_AR[p])+'</span></div><div class="stack">';
     CH.filter(c=>c.part===p).forEach(c=>{
@@ -2405,7 +2425,7 @@ function runMock(){
 function render(){
   const m=$('#main'); let title='IFRS',sub='DipIFRS — 24 معيار';
   let html='';
-  if(S.tab==='std'){ if(S.view&&S.view.kit){html=viewKit(S.view.kit)} else if(S.chId){html=viewCh();const c=chById(S.chId);title='Chapter '+c.id;sub=c.ar} else html=viewStd(); }
+  if(S.tab==='std'){ if(S.view&&S.view.gl){html=viewGl();title='قاموس المصطلحات';sub='English ↔ عربي'} else if(S.view&&S.view.kit){html=viewKit(S.view.kit)} else if(S.chId){html=viewCh();const c=chById(S.chId);title='Chapter '+c.id;sub=c.ar} else html=viewStd(); }
   else if(S.tab==='eas'){ if(S.eas){const e=EASBY(S.eas);html=viewEas();title=e.tag||('EAS '+e.n);sub=e.ar} else {html=viewEasList();title='المعايير المصرية';sub='معايير المحاسبة المصرية — تحديث 2024'} }
   else if(S.tab==='exam'){title='Exams';sub='اختار المعايير وابدأ بالوقت';html=viewExam();}
   else {title='My Progress';sub='مخزّن على جهازك';html=viewProg();}
@@ -2420,6 +2440,8 @@ const A={
  openCh(d){if(+d.id>=100)return A.openEas({n:+d.id-100});S.tab='std';S.chId=+d.id;S.sub='ov';S.view=null;S.p=null;render();scrollTo(0,0)},
  openEas(d){S.tab='eas';S.eas=+d.n;S.sub='ov';S.p=null;render();scrollTo(0,0)},
  backEas(){S.eas=null;render();scrollTo(0,0)},
+ openGl(){S.view={gl:1};S.glPh=false;render();scrollTo(0,0)},
+ glMode(d){S.glPh=d.m==='ph';$('#glm1').classList.toggle('ghost',S.glPh);$('#glm2').classList.toggle('ghost',!S.glPh);glFilter()},
  backStd(){S.chId=null;S.view=null;render();scrollTo(0,0)},
  sub(d){S.sub=d.s;render();scrollTo(0,0)},
  async trAll(d){const id=+d.id; if(S.showAr[id]){S.showAr[id]=false;render();return} S.showAr[id]=true;render(); const x=window.XT&&XT[id]; if(!x) return;
@@ -2487,6 +2509,7 @@ document.addEventListener('click',e=>{
   const el=e.target.closest('[data-act]'); if(!el) return;
   const f=A[el.dataset.act]; if(f){ if(el.tagName==='SELECT'||el.type==='checkbox') return; f(el.dataset,el) }
 });
+document.addEventListener('input',e=>{if(e.target&&e.target.id==='glq')glFilter()});
 document.addEventListener('change',e=>{const el=e.target.closest('[data-act]'); if(!el) return; if(el.tagName==='SELECT'||el.type==='checkbox'||el.type==='number'){const f=A[el.dataset.act]; if(f) f(el.dataset,el)}});
 $('#fab').addEventListener('click',()=>{const t=lastSel; $('#fab').classList.remove('show'); showText(t)});
 $$('nav.bar button').forEach(b=>b.addEventListener('click',()=>{S.view=null;if(b.dataset.tab==='std'&&S.tab==='std'){S.chId=null} if(b.dataset.tab==='eas'&&S.tab==='eas'){S.eas=null} go(b.dataset.tab)}));
