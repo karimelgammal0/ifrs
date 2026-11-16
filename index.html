@@ -153,6 +153,8 @@ table.t th,table.t td{padding:8px 6px;border-bottom:1px solid var(--line);text-a
 .trq-e{margin-top:4px;color:var(--muted);line-height:1.8}
 
 .chcard .chr{margin-inline-start:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:3.4rem;color:#000;text-align:center}.chcard .chr b{font-family:var(--f-num);font-weight:900;font-size:1.5rem;line-height:1;color:#000}.chcard .chr small{font-weight:800;font-size:.7rem;margin-top:3px;color:#000;direction:rtl}
+
+.chcard .chr{direction:ltr;align-items:flex-end;min-width:4.2rem;text-align:right}.chcard .chr b{font-family:var(--f-num);font-weight:900;font-size:.95rem;line-height:1.25;color:#000;white-space:nowrap}
 </style>
 <link rel="manifest" href="manifest.json?v=6"><meta name="theme-color" content="#0e6b5b"><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="DipIFRS"></head>
 <body>
@@ -2023,7 +2025,7 @@ function save(){try{localStorage.setItem(LS,JSON.stringify(DB));}catch(e){}}
   if(window.XQ) Object.keys(XQ).forEach(id=>{const c=CH.find(x=>x.id===+id); if(c) XQ[id].forEach(q=>c.mcq.push(q));});
   (window.EAS||[]).forEach(e=>{if(e.sh&&!e.__s){e.__s=1;e.mcq=e.mcq.map((q,qi)=>{let t=(e.n*97+qi*31+7)%2147483647;const rnd=()=>{t=(t*48271)%2147483647;return t/2147483647};const idx=[0,1,2,3];for(let i=3;i>0;i--){const j=Math.floor(rnd()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]]}const o=idx.map(i=>q[1][i]);return [q[0],o,idx.indexOf(q[2]),q[3]]})}CH.push({id:100+e.n,part:'E',eas:true,n:e.n,title:(e.tag?'':'EAS '+e.n+' — ')+e.ar,ar:e.ar,std:e.ifrs,sum:{en:'',ar:e.sum},mem:[],mcq:e.mcq})});
 })();
-const AW=['','واحد','اثنان','ثلاثة','أربعة','خمسة','ستة','سبعة','ثمانية','تسعة','عشرة','أحد عشر','اثنا عشر','ثلاثة عشر','أربعة عشر','خمسة عشر','ستة عشر','سبعة عشر','ثمانية عشر','تسعة عشر','عشرون','واحد وعشرون','اثنان وعشرون','ثلاثة وعشرون','أربعة وعشرون'];
+const stdCodes=c=>{const m=[...new Set((c.std.match(/(IFRS|IAS)\s?\d+/g)||[]).map(x=>x.replace(/\s?(\d)/,' $1')))];const fb={1:['IASB'],2:['CF 2018'],19:['IFRS SMEs']};const l=m.length?m:(fb[c.id]||[]);return l.map(x=>'<b>'+x+'</b>').join('')};
 const EASBY=n=>(window.EAS||[]).find(e=>e.n===n);
 const curCh=()=>S.tab==='eas'?chById(100+S.eas):chById(S.chId);
 const BK=window.BOOKS, chById=id=>CH.find(c=>c.id===id), kitBy=n=>BK.kit.find(k=>k.n===n);
@@ -2139,7 +2141,7 @@ function viewStd(){
   ['A','B','C','D'].forEach(p=>{
     h+='<div class="part"><b>'+p+'</b><span>'+esc(PARTS_AR[p])+'</span></div><div class="stack">';
     CH.filter(c=>c.part===p).forEach(c=>{
-      h+='<button class="chcard" data-act="openCh" data-id="'+c.id+'"><span class="grow"><div class="t en">'+esc(c.title)+'</div><div class="ar">'+esc(c.ar)+'</div><div class="std en">'+esc(c.std)+'</div>'+chBadge(c)+'</span><span class="chr"><b>'+c.id+'</b><small>'+(AW[c.id]||'')+'</small></span></button>';
+      h+='<button class="chcard" data-act="openCh" data-id="'+c.id+'"><span class="grow"><div class="t en">'+esc(c.title)+'</div><div class="ar">'+esc(c.ar)+'</div><div class="std en">'+esc(c.std)+'</div>'+chBadge(c)+'</span><span class="chr">'+stdCodes(c)+'</span></button>';
     });
     h+='</div>';
   });
