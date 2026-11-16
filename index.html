@@ -162,6 +162,13 @@ table.t th,table.t td{padding:8px 6px;border-bottom:1px solid var(--line);text-a
 .gl-h{position:sticky;top:0;background:var(--bg,#f4f6f5);font-weight:900;padding:6px 4px;margin-top:8px;color:#0e6b5b}
 .gl-it{display:flex;justify-content:space-between;gap:12px;padding:9px 4px;border-bottom:1px solid #e3e8e5;font-size:.95rem}
 .gl-it b{font-weight:700;flex:0 0 46%}.gl-it span{flex:1;text-align:right}
+
+.wpop{position:fixed;z-index:9999;background:#0e6b5b;color:#fff;padding:8px 14px;border-radius:12px;font-weight:700;font-size:1.05rem;box-shadow:0 6px 18px rgba(0,0,0,.25);max-width:80vw;text-align:center;line-height:1.4}
+.wpop.none{background:#555;font-weight:500;font-size:.9rem}
+.wpop::after{content:'';position:absolute;left:var(--ax,50%);bottom:-6px;margin-left:-6px;border:6px solid transparent;border-top-color:inherit;border-bottom:0;border-top-color:#0e6b5b}
+.wpop.none::after{border-top-color:#555}
+.wpop.below::after{bottom:auto;top:-6px;border-top:0;border-bottom:6px solid #0e6b5b}
+.wpop.none.below::after{border-bottom-color:#555}
 </style>
 <link rel="manifest" href="manifest.json?v=6"><meta name="theme-color" content="#0e6b5b"><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="DipIFRS"></head>
 <body>
@@ -2099,7 +2106,8 @@ function wordFromPoint(x,y){
   const t=r.startContainer.textContent, re=/[A-Za-z'’\-]/; let a=r.startOffset,b=a;
   while(a>0&&re.test(t[a-1]))a--; while(b<t.length&&re.test(t[b]))b++;
   const w=t.slice(a,b).replace(/^['’\-]+|['’\-]+$/g,''); if(w.length<2) return null;
-  return {w,sent:sentenceAt(t,a,b)};
+  let rect=null; try{const rg=document.createRange();rg.setStart(r.startContainer,a);rg.setEnd(r.startContainer,b);rect=rg.getBoundingClientRect()}catch(e){}
+  return {w,sent:sentenceAt(t,a,b),rect};
 }
 
 async function trMcq(q,withExpl){
@@ -2115,25 +2123,37 @@ function mcqArHtml(q,arr,withExpl){
   if(withExpl&&q[3]) h+='<div class="trq-e" dir="rtl">'+esc(arr[5]||'')+'</div>';
   return h+'</div>';
 }
-function showWord(w,sent){
+function hideWordPop(){const p=document.getElementById('wpop'); if(p) p.remove()}
+function showWord(w,rect){
+  hideWordPop();
   const g=glossLookup(w);
-  openSheet('<div class="w">'+esc(w)+'</div><div class="m" id="wm">'+(g?esc(g):'<span class="muted small">الكلمة دي مش في القاموس.</span>')+'</div><div class="ctx">'+esc(sent)+'</div>');
-  sheet.dataset.w=w; sheet.dataset.s=sent;
+  const d=document.createElement('div'); d.id='wpop'; d.className='wpop'; d.dir='rtl';
+  d.textContent=g||'مش في القاموس';
+  if(!g) d.classList.add('none');
+  document.body.appendChild(d);
+  const W=innerWidth, pw=d.offsetWidth, ph=d.offsetHeight;
+  const cx=rect?rect.left+rect.width/2:W/2, top=rect?rect.top:innerHeight/2;
+  let x=Math.min(Math.max(8,cx-pw/2),W-pw-8), y=top-ph-10, below=false;
+  if(y<8){y=(rect?rect.bottom:top)+10; below=true}
+  d.style.left=x+'px'; d.style.top=y+'px'; if(below) d.classList.add('below');
+  d.style.setProperty('--ax',(cx-x)+'px');
 }
 async function showText(text,title){
   openSheet('<div class="small muted en">'+esc(text.length>300?text.slice(0,300)+'…':text)+'</div><div id="wx" class="ar-block"><span class="muted">بترجم…</span></div>');
   try{const o=await aiTr(text,'t'); $('#wx').textContent=o}catch(e){$('#wx').innerHTML=fallbackHtml(text)}
 }
 let lastSel='';
+addEventListener('scroll',hideWordPop,{passive:true,capture:true});
 document.addEventListener('selectionchange',()=>{
   const sel=getSelection(); const t=sel&&sel.toString().trim(); const fab=$('#fab');
   if(t&&t.length>3&&/\s/.test(t)&&sel.anchorNode&&sel.anchorNode.parentElement&&sel.anchorNode.parentElement.closest('.tr')){lastSel=t;fab.classList.add('show')} else fab.classList.remove('show');
 });
 document.addEventListener('click',e=>{
-  const t=e.target; if(t.closest('button,a,input,select,label,summary,.sheet,.fab,.opt,.dlg')) return;
+  const t=e.target; if(!t.closest('.wpop')) hideWordPop();
+  if(t.closest('button,a,input,select,label,summary,.sheet,.fab,.opt,.dlg')) return;
   const box=t.closest('.tr'); if(!box) return;
   const sel=getSelection(); if(sel&&sel.toString().trim().length>0) return;
-  const hit=wordFromPoint(e.clientX,e.clientY); if(hit) showWord(hit.w,hit.sent);
+  const hit=wordFromPoint(e.clientX,e.clientY); if(hit) showWord(hit.w,hit.rect); else hideWordPop();
 });
 
 /* ---------- helpers ---------- */
