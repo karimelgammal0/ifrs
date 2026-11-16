@@ -1,1 +1,30 @@
-{"name":"مذاكرة DipIFR","short_name":"DipIFR","description":"مذاكرة DipIFR والمعايير المصرية","lang":"ar","dir":"rtl","start_url":"./index.html","scope":"./","display":"standalone","background_color":"#ffffff","theme_color":"#0e6b5b","icons":[{"src":"icons/icon-192.png","sizes":"192x192","type":"image/png"},{"src":"icons/icon-512.png","sizes":"512x512","type":"image/png"},{"src":"icons/maskable-512.png","sizes":"512x512","type":"image/png","purpose":"maskable"}]}
+{
+ "name": "DipIFRS",
+ "short_name": "DipIFRS",
+ "description": "مذاكرة DipIFR والمعايير المصرية",
+ "lang": "ar",
+ "dir": "rtl",
+ "start_url": "./index.html",
+ "scope": "./",
+ "display": "standalone",
+ "background_color": "#ffffff",
+ "theme_color": "#0e6b5b",
+ "icons": [
+  {
+   "src": "icons/icon-192.png",
+   "sizes": "192x192",
+   "type": "image/png"
+  },
+  {
+   "src": "icons/icon-512.png",
+   "sizes": "512x512",
+   "type": "image/png"
+  },
+  {
+   "src": "icons/maskable-512.png",
+   "sizes": "512x512",
+   "type": "image/png",
+   "purpose": "maskable"
+  }
+ ]
+}
