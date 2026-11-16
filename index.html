@@ -151,6 +151,8 @@ table.t th,table.t td{padding:8px 6px;border-bottom:1px solid var(--line);text-a
 .trq-o.ok{border-color:var(--good);background:var(--good-soft)}
 .trq-o .L{flex:none;font-family:var(--f-num);font-weight:700;color:var(--muted);min-width:1.2em}
 .trq-e{margin-top:4px;color:var(--muted);line-height:1.8}
+
+.chcard .chr{margin-inline-start:auto;display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:3.4rem;color:#000;text-align:center}.chcard .chr b{font-family:var(--f-num);font-weight:900;font-size:1.5rem;line-height:1;color:#000}.chcard .chr small{font-weight:800;font-size:.7rem;margin-top:3px;color:#000;direction:rtl}
 </style>
 <link rel="manifest" href="manifest.json?v=6"><meta name="theme-color" content="#0e6b5b"><link rel="icon" href="icons/icon-192.png"><link rel="apple-touch-icon" href="icons/apple-touch-icon.png"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-title" content="DipIFRS"></head>
 <body>
@@ -2021,6 +2023,7 @@ function save(){try{localStorage.setItem(LS,JSON.stringify(DB));}catch(e){}}
   if(window.XQ) Object.keys(XQ).forEach(id=>{const c=CH.find(x=>x.id===+id); if(c) XQ[id].forEach(q=>c.mcq.push(q));});
   (window.EAS||[]).forEach(e=>{if(e.sh&&!e.__s){e.__s=1;e.mcq=e.mcq.map((q,qi)=>{let t=(e.n*97+qi*31+7)%2147483647;const rnd=()=>{t=(t*48271)%2147483647;return t/2147483647};const idx=[0,1,2,3];for(let i=3;i>0;i--){const j=Math.floor(rnd()*(i+1));[idx[i],idx[j]]=[idx[j],idx[i]]}const o=idx.map(i=>q[1][i]);return [q[0],o,idx.indexOf(q[2]),q[3]]})}CH.push({id:100+e.n,part:'E',eas:true,n:e.n,title:(e.tag?'':'EAS '+e.n+' — ')+e.ar,ar:e.ar,std:e.ifrs,sum:{en:'',ar:e.sum},mem:[],mcq:e.mcq})});
 })();
+const AW=['','واحد','اثنان','ثلاثة','أربعة','خمسة','ستة','سبعة','ثمانية','تسعة','عشرة','أحد عشر','اثنا عشر','ثلاثة عشر','أربعة عشر','خمسة عشر','ستة عشر','سبعة عشر','ثمانية عشر','تسعة عشر','عشرون','واحد وعشرون','اثنان وعشرون','ثلاثة وعشرون','أربعة وعشرون'];
 const EASBY=n=>(window.EAS||[]).find(e=>e.n===n);
 const curCh=()=>S.tab==='eas'?chById(100+S.eas):chById(S.chId);
 const BK=window.BOOKS, chById=id=>CH.find(c=>c.id===id), kitBy=n=>BK.kit.find(k=>k.n===n);
@@ -2136,7 +2139,7 @@ function viewStd(){
   ['A','B','C','D'].forEach(p=>{
     h+='<div class="part"><b>'+p+'</b><span>'+esc(PARTS_AR[p])+'</span></div><div class="stack">';
     CH.filter(c=>c.part===p).forEach(c=>{
-      h+='<button class="chcard" data-act="openCh" data-id="'+c.id+'"><span class="chn">'+c.id+'</span><span class="grow"><div class="t en">'+esc(c.title)+'</div><div class="ar">'+esc(c.ar)+'</div><div class="std en">'+esc(c.std)+'</div>'+chBadge(c)+'</span></button>';
+      h+='<button class="chcard" data-act="openCh" data-id="'+c.id+'"><span class="grow"><div class="t en">'+esc(c.title)+'</div><div class="ar">'+esc(c.ar)+'</div><div class="std en">'+esc(c.std)+'</div>'+chBadge(c)+'</span><span class="chr"><b>'+c.id+'</b><small>'+(AW[c.id]||'')+'</small></span></button>';
     });
     h+='</div>';
   });
@@ -2237,10 +2240,10 @@ function subOv(c){
 const ESUBS=[['ov','نظرة عامة'],['sum','الشرح'],['key','أهم النقط'],['link','الربط بالدولي'],['q','أسئلة'],['mock','اختبار بالوقت']];
 function easW(n){const l=(window.EASW||[]).map((w,i)=>({w,i})).filter(x=>x.w.n===n); if(!l.length) return '<h2>سؤال امتحان 25 درجة (49 دقيقة)</h2><div class="note">مفيش سؤال مقالي على المعيار ده. جرّب أسئلة المعايير المرتبطة.</div>'; return '<h2>سؤال امتحان 25 درجة (49 دقيقة)</h2><div class="stack">'+l.map(x=>'<div class="card"><b>'+esc(x.w.title)+'</b><div class="row" style="margin-top:8px"><button class="btn pri" data-act="startEasW" data-i="'+x.i+'">ابدأ بالوقت</button></div></div>').join('')+'</div>'}
 function viewEasList(){
-  let h='<div class="note" style="margin-bottom:10px">مبني على الوقائع المصرية (2019 و2020: قرار 732 لسنة 2020) وقرارات رئيس الوزراء 883 لسنة 2023 و636 لسنة 2024. المعايير المعدلة أو الجديدة بعد 2023 مبينة بتاريخ سريانها داخل كل معيار.</div><div class="stack">';
+  let h='<div class="stack">';
   (window.EAS||[]).slice().sort((x,y)=>(x.n>=98)-(y.n>=98)||x.n-y.n).forEach(e=>{const c=chById(100+e.n);
     h+='<button class="chcard" data-act="openEas" data-n="'+e.n+'"><span class="chn">'+(e.tag?(e.n===99?'+':'ت'):e.n)+'</span><span class="grow"><div class="t" style="direction:rtl;text-align:right">'+esc(e.ar)+'</div><div class="small muted en" style="margin-top:2px">'+(e.tag?'':'يقابل: ')+esc(e.ifrs)+'</div>'+chBadge(c)+'</span></button>'});
-  h+='</div><div class="note" style="margin-top:12px">بطاقة «تعديلات» تشرح التعديلات المصاحبة للمنشآت الاستثمارية (قرار 69 لسنة 2019) على المعايير 15 و17 و18 و24 و29 و30 و31 و32 و44.</div>';
+  h+='</div>';
   return h;
 }
 function viewEas(){
@@ -2258,12 +2261,12 @@ function viewEas(){
   } else if(sb==='sum'){
     h+='<h2 style="margin-top:4px">شرح مختصر للمعيار</h2><div class="en-block" style="direction:rtl;text-align:right">'+esc(e.sum)+'</div><div class="row" style="margin-top:14px"><button class="btn pri grow" data-act="studied" data-id="'+c.id+'">'+(DB.studied[c.id]?'✓ اتذاكر (اضغط للإلغاء)':'علّم إني خلصت المذاكرة')+'</button><button class="btn grow" data-act="sub" data-s="key">أهم النقط ←</button></div>';
   } else if(sb==='key'){
-    h+='<div class="hint">أهم النقط والتعريفات على شكل أسئلة. اضغط السؤال تظهر الإجابة.</div>'+keyCards(e.key)+'<div class="row" style="margin-top:16px"><button class="btn pri grow" data-act="sub" data-s="link">الربط بالمعيار الدولي ←</button></div>';
+    h+=''+keyCards(e.key)+'<div class="row" style="margin-top:16px"><button class="btn pri grow" data-act="sub" data-s="link">الربط بالمعيار الدولي ←</button></div>';
   } else if(sb==='link'){
     h+='<div class="en-block" style="direction:rtl;text-align:right"><b>المقابل الدولي: <span class="en">'+esc(e.link.ifrs)+'</span></b><div style="margin-top:6px">'+esc(e.link.why)+'</div></div><h2>أهم الاختلافات وأثرها على القوائم المالية</h2><div class="stack">'+e.link.rows.map(r=>'<div class="card"><b>'+esc(r[0])+'</b><div class="lk"><span>المصري</span>'+esc(r[1])+'</div><div class="lk"><span>الدولي</span>'+esc(r[2])+'</div><div class="lk fx"><span>الأثر على القوائم</span>'+esc(r[3])+'</div></div>').join('')+'</div>';
     h+='<div class="row" style="margin-top:14px">'+e.ifrsCh.map(i=>'<button class="btn grow" data-act="openCh" data-id="'+i+'">افتح الشرح الدولي (Ch '+i+')</button>').join('')+'</div>';
   } else if(sb==='q'){ h+=subQ(c); }
-  else { h+='<div class="hint">اختبار اختيار من متعدد بالوقت (1.5 دقيقة للسؤال).</div><div class="card"><h3>اختبار على EAS '+e.n+'</h3><div class="muted small">'+c.mcq.length+' سؤال · '+Math.ceil(c.mcq.length*1.5)+' دقيقة</div><div class="row" style="margin-top:10px"><button class="btn pri" data-act="startMcq" data-id="'+c.id+'">ابدأ بالوقت</button></div></div>'+easW(e.n)+'<div class="card" style="margin-top:10px"><b>اختبار من أكتر من معيار</b><div class="small muted" style="margin-top:4px">من تبويب «الاختبارات» اختار المعايير المصرية مع الدولية.</div><div class="row" style="margin-top:8px"><button class="btn" data-act="goExam">افتح الاختبارات</button></div></div>'; }
+  else { h+='<div class="card"><h3>اختبار على EAS '+e.n+'</h3><div class="muted small">'+c.mcq.length+' سؤال · '+Math.ceil(c.mcq.length*1.5)+' دقيقة</div><div class="row" style="margin-top:10px"><button class="btn pri" data-act="startMcq" data-id="'+c.id+'">ابدأ بالوقت</button></div></div>'+easW(e.n)+'<div class="card" style="margin-top:10px"><b>اختبار من أكتر من معيار</b><div class="small muted" style="margin-top:4px">من تبويب «الاختبارات» اختار المعايير المصرية مع الدولية.</div><div class="row" style="margin-top:8px"><button class="btn" data-act="goExam">افتح الاختبارات</button></div></div>'; }
   return h;
 }
 
@@ -2377,7 +2380,7 @@ function runMock(){
 
 /* ---------- render ---------- */
 function render(){
-  const m=$('#main'); let title='المعايير',sub='DipIFR — 24 معيار';
+  const m=$('#main'); let title='IFRS',sub='DipIFRS — 24 معيار';
   let html='';
   if(S.tab==='std'){ if(S.view&&S.view.kit){html=viewKit(S.view.kit)} else if(S.chId){html=viewCh();const c=chById(S.chId);title='Chapter '+c.id;sub=c.ar} else html=viewStd(); }
   else if(S.tab==='eas'){ if(S.eas){const e=EASBY(S.eas);html=viewEas();title=e.tag||('EAS '+e.n);sub=e.ar} else {html=viewEasList();title='المعايير المصرية';sub='معايير المحاسبة المصرية — تحديث 2024'} }
