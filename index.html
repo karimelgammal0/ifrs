@@ -2115,11 +2115,10 @@ function mcqArHtml(q,arr,withExpl){
   if(withExpl&&q[3]) h+='<div class="trq-e" dir="rtl">'+esc(arr[5]||'')+'</div>';
   return h+'</div>';
 }
-async function showWord(w,sent){
+function showWord(w,sent){
   const g=glossLookup(w);
-  openSheet('<div class="w">'+esc(w)+'</div><div class="m" id="wm">'+(g?esc(g):'<span class="muted small">بدور على المعنى…</span>')+'</div><div class="ctx">'+esc(sent)+'</div><div class="row"><button class="btn sm" data-act="trSent">ترجم الجملة</button><button class="btn sm ghost" data-act="trCtx">المعنى في السياق</button></div><div id="wx" class="ar-block" style="display:none"></div>');
+  openSheet('<div class="w">'+esc(w)+'</div><div class="m" id="wm">'+(g?esc(g):'<span class="muted small">الكلمة دي مش في القاموس.</span>')+'</div><div class="ctx">'+esc(sent)+'</div>');
   sheet.dataset.w=w; sheet.dataset.s=sent;
-  if(!g){ try{const o=await aiTr(w,'w',sent); if(sheet.dataset.w===w){ const [m1,...rest]=o.split('\n'); $('#wm').textContent=m1; if(rest.join(' ').trim()){const x=$('#wx');x.style.display='block';x.textContent=rest.join(' ');} } }catch(e){ $('#wm').innerHTML='<span class="muted small">مش في القاموس. دوس «ترجم الجملة» تشوف معاني المصطلحات اللي فيها.</span>' } }
 }
 async function showText(text,title){
   openSheet('<div class="small muted en">'+esc(text.length>300?text.slice(0,300)+'…':text)+'</div><div id="wx" class="ar-block"><span class="muted">بترجم…</span></div>');
@@ -2163,23 +2162,8 @@ function chBadge(c){
 }
 
 /* ---------- views ---------- */
-function viewGl(){
-  const G=window.GLOSS||{}; const ks=Object.keys(G).filter(k=>/^[a-z0-9]/.test(k)).sort((a,b)=>a.localeCompare(b));
-  let h='<button class="btn sm ghost" data-act="backStd">← كل المعايير</button><div class="card" style="margin-top:10px"><h3>📖 قاموس المصطلحات</h3><div class="muted small">'+ks.length+' مصطلح إنجليزي ← عربي، يشتغل من غير نت. اكتب بالإنجليزي أو بالعربي.</div>'
-   +'<input id="glq" class="inp" type="search" placeholder="ابحث عن مصطلح… / search" style="width:100%;margin-top:10px" autocomplete="off">'
-   +'<div class="row" style="margin-top:8px"><button class="btn sm" data-act="glMode" data-m="all" id="glm1">الكل</button><button class="btn sm ghost" data-act="glMode" data-m="ph" id="glm2">العبارات المحاسبية فقط</button></div></div><div id="glist" class="gl-list">';
-  let cur='';
-  ks.forEach(k=>{const L=k[0].toUpperCase(); if(/[0-9]/.test(L)) {} if(L!==cur){cur=L;h+='<div class="gl-h" data-l="1">'+esc(L)+'</div>'}
-    h+='<div class="gl-it" data-k="'+esc(k)+'" data-p="'+(k.includes(' ')?1:0)+'" data-a="'+esc(G[k])+'"><b class="en" dir="ltr">'+esc(k)+'</b><span dir="rtl">'+esc(G[k])+'</span></div>'});
-  return h+'</div>';
-}
-function glFilter(){
-  const q=($('#glq')||{}).value||''; const t=q.trim().toLowerCase(); const ph=S.glPh; let any=false;
-  const items=$$('#glist .gl-it'); items.forEach(el=>{const ok=(!ph||el.dataset.p==='1')&&(!t||el.dataset.k.includes(t)||el.dataset.a.includes(q.trim())); el.style.display=ok?'':'none'});
-  let last=null; $$('#glist > *').forEach(el=>{ if(el.classList.contains('gl-h')){last=el;el.style.display='none'} else if(el.style.display!=='none'&&last){last.style.display=''} });
-}
 function viewStd(){
-  let h='<button class="btn pri" data-act="openGl" style="width:100%;margin-bottom:12px">📖 قاموس المصطلحات (English ↔ عربي)</button>';
+  let h='';
   ['A','B','C','D'].forEach(p=>{
     h+='<div class="part"><b>'+p+'</b><span>'+esc(PARTS_AR[p])+'</span></div><div class="stack">';
     CH.filter(c=>c.part===p).forEach(c=>{
@@ -2425,7 +2409,7 @@ function runMock(){
 function render(){
   const m=$('#main'); let title='IFRS',sub='DipIFRS — 24 معيار';
   let html='';
-  if(S.tab==='std'){ if(S.view&&S.view.gl){html=viewGl();title='قاموس المصطلحات';sub='English ↔ عربي'} else if(S.view&&S.view.kit){html=viewKit(S.view.kit)} else if(S.chId){html=viewCh();const c=chById(S.chId);title='Chapter '+c.id;sub=c.ar} else html=viewStd(); }
+  if(S.tab==='std'){ if(S.view&&S.view.kit){html=viewKit(S.view.kit)} else if(S.chId){html=viewCh();const c=chById(S.chId);title='Chapter '+c.id;sub=c.ar} else html=viewStd(); }
   else if(S.tab==='eas'){ if(S.eas){const e=EASBY(S.eas);html=viewEas();title=e.tag||('EAS '+e.n);sub=e.ar} else {html=viewEasList();title='المعايير المصرية';sub='معايير المحاسبة المصرية — تحديث 2024'} }
   else if(S.tab==='exam'){title='Exams';sub='اختار المعايير وابدأ بالوقت';html=viewExam();}
   else {title='My Progress';sub='مخزّن على جهازك';html=viewProg();}
@@ -2440,8 +2424,6 @@ const A={
  openCh(d){if(+d.id>=100)return A.openEas({n:+d.id-100});S.tab='std';S.chId=+d.id;S.sub='ov';S.view=null;S.p=null;render();scrollTo(0,0)},
  openEas(d){S.tab='eas';S.eas=+d.n;S.sub='ov';S.p=null;render();scrollTo(0,0)},
  backEas(){S.eas=null;render();scrollTo(0,0)},
- openGl(){S.view={gl:1};S.glPh=false;render();scrollTo(0,0)},
- glMode(d){S.glPh=d.m==='ph';$('#glm1').classList.toggle('ghost',S.glPh);$('#glm2').classList.toggle('ghost',!S.glPh);glFilter()},
  backStd(){S.chId=null;S.view=null;render();scrollTo(0,0)},
  sub(d){S.sub=d.s;render();scrollTo(0,0)},
  async trAll(d){const id=+d.id; if(S.showAr[id]){S.showAr[id]=false;render();return} S.showAr[id]=true;render(); const x=window.XT&&XT[id]; if(!x) return;
@@ -2461,8 +2443,6 @@ const A={
    try{const arr=await trMcq(q,true);box.innerHTML=mcqArHtml(q,arr,true)}catch(e){box.innerHTML=fallbackHtml(q[0]+' '+q[1].join(' ')+' '+(q[3]||''))}},
  async trPara(d,el){const box=el.nextElementSibling,txt=PARA_STORE[d.t];if(!box.hidden&&box.dataset.ok){box.hidden=true;return}box.hidden=false;box.textContent='بترجم…';
    try{box.textContent=await aiTr(txt,'t');box.dataset.ok='1'}catch(e){box.innerHTML=fallbackHtml(txt)}},
- async trSent(){const s=sheet.dataset.s;const x=$('#wx');x.style.display='block';x.textContent='بترجم…';try{x.textContent=await aiTr(s,'t')}catch(e){x.innerHTML=fallbackHtml(s)}},
- async trCtx(){const x=$('#wx');x.style.display='block';x.textContent='بدور…';try{const o=await aiTr(sheet.dataset.w,'w',sheet.dataset.s);x.textContent=o;}catch(e){x.innerHTML=fallbackHtml(sheet.dataset.s)}},
  closeSheet,
  openKit(d){S.tab='std';S.view={kit:+d.n};render();scrollTo(0,0)},
  closeKit(){S.view=null;render()},
@@ -2509,7 +2489,6 @@ document.addEventListener('click',e=>{
   const el=e.target.closest('[data-act]'); if(!el) return;
   const f=A[el.dataset.act]; if(f){ if(el.tagName==='SELECT'||el.type==='checkbox') return; f(el.dataset,el) }
 });
-document.addEventListener('input',e=>{if(e.target&&e.target.id==='glq')glFilter()});
 document.addEventListener('change',e=>{const el=e.target.closest('[data-act]'); if(!el) return; if(el.tagName==='SELECT'||el.type==='checkbox'||el.type==='number'){const f=A[el.dataset.act]; if(f) f(el.dataset,el)}});
 $('#fab').addEventListener('click',()=>{const t=lastSel; $('#fab').classList.remove('show'); showText(t)});
 $$('nav.bar button').forEach(b=>b.addEventListener('click',()=>{S.view=null;if(b.dataset.tab==='std'&&S.tab==='std'){S.chId=null} if(b.dataset.tab==='eas'&&S.tab==='eas'){S.eas=null} go(b.dataset.tab)}));
