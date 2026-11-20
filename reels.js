@@ -31,41 +31,54 @@ function skyline(){
   return s;
 }
 function person(id,c){
-  const sk2=mix(c.skin,-.18),suit2=mix(c.suit,-.3),hair2=mix(c.hair,-.2);
-  const hairPath=`<path d="M-23 -26 C-27 -53 -8 -60 2 -58 C19 -57 27 -46 23 -26 C20 -39 13 -43 0 -43 C-13 -43 -20 -39 -23 -26Z" fill="${c.hair}"/>`;
-  return `<g class="ch" id="ch-${id}" data-mood="neutral" data-brow="flat" data-mouth="line" data-eye="open" data-head="up" style="opacity:0">
-  <ellipse cx="0" cy="2" rx="38" ry="7" fill="#000" opacity=".35"/>
+  const sk2=mix(c.skin,-.2),sk3=mix(c.skin,-.38),skL=mix(c.skin,.22),suit2=mix(c.suit,-.32),suitL=mix(c.suit,.2),hair2=mix(c.hair,-.25),hairL=mix(c.hair,.3);
+  const g='g'+id,old=c.age==='old';
+  const defs=`<defs>
+  <radialGradient id="${g}F" cx=".42" cy=".38" r=".75"><stop offset="0" stop-color="${skL}"/><stop offset=".55" stop-color="${c.skin}"/><stop offset="1" stop-color="${sk2}"/></radialGradient>
+  <linearGradient id="${g}J" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${suitL}"/><stop offset=".35" stop-color="${c.suit}"/><stop offset="1" stop-color="${suit2}"/></linearGradient>
+  <linearGradient id="${g}H" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${hairL}"/><stop offset="1" stop-color="${c.hair}"/></linearGradient>
+  <linearGradient id="${g}T" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="${mix(c.tie,.2)}"/><stop offset="1" stop-color="${mix(c.tie,-.35)}"/></linearGradient>
+  <linearGradient id="${g}N" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${sk3}"/><stop offset="1" stop-color="${sk2}"/></linearGradient></defs>`;
+  const hair=c.hairStyle==='young'
+   ?`<path d="M-21 -34 C-25 -60 -6 -68 6 -66 C22 -64 27 -50 21 -32 C20 -42 15 -49 8 -51 C0 -46 -12 -47 -21 -34Z" fill="url(#${g}H)"/><path d="M-12 -58 Q0 -64 14 -57 M-18 -48 Q-8 -58 4 -58" stroke="${hairL}" stroke-width="1" fill="none" opacity=".45"/>`
+   :`<path d="M-20 -36 C-23 -58 -6 -64 4 -62 C18 -62 24 -50 20 -34 C19 -42 14 -50 4 -52 C-8 -50 -16 -46 -20 -36Z" fill="url(#${g}H)"/><path d="M-9 -57 Q2 -61 13 -55 M-15 -50 Q-4 -58 8 -57" stroke="${hairL}" stroke-width="1" fill="none" opacity=".5"/>${old?`<path d="M-20 -36 C-21 -42 -19 -46 -16 -48 L-17 -34Z M20 -34 C21 -42 19 -46 16 -48 L17 -34Z" fill="${hairL}" opacity=".55"/>`:''}`;
+  const frame=c.glasses?`<g fill="#9cc3ff" fill-opacity=".07" stroke="#17171c" stroke-width="1.3"><rect x="-15.5" y="-32" width="13.5" height="10" rx="3.4"/><rect x="2" y="-32" width="13.5" height="10" rx="3.4"/><path d="M-2 -28 H2 M-15.5 -29 L-19.5 -30.5 M15.5 -29 L19.5 -30.5" fill="none"/></g><path d="M-13 -30 l4 0 M4 -30 l4 0" stroke="#fff" stroke-width=".8" opacity=".5"/>`:'';
+  const eyeAt=x=>`<g transform="translate(${x},-27)"><ellipse rx="6.6" ry="4.6" fill="${sk3}" opacity=".28"/><ellipse class="eye" rx="4.5" ry="3.5" fill="#f3f0ea"/><g class="pupil"><circle r="2.35" fill="#4a3322"/><circle r="1.15" fill="#080605"/><circle cx=".8" cy="-.8" r=".55" fill="#fff"/></g><ellipse class="lid" cy="-.5" rx="5.2" ry="4.3" fill="${c.skin}"/><path d="M-4.8 -.6 Q0 -4.6 4.8 -.6" stroke="${hair2}" stroke-width="1.15" fill="none" stroke-linecap="round"/></g>`;
+  const wr=old?`<path d="M-12 -45 Q0 -48 12 -45 M-10 -41.5 Q0 -44 10 -41.5" stroke="${sk3}" stroke-width=".8" fill="none" opacity=".45"/><path d="M-9 -19 Q-12 -12 -10 -6 M9 -19 Q12 -12 10 -6" stroke="${sk3}" stroke-width=".9" fill="none" opacity=".5"/>`:'';
+  const stub=c.stubble?`<path d="M-17 -18 C-17 -4 -9 3 0 3 C9 3 17 -4 17 -18 C14 -8 8 -1 0 -1 C-8 -1 -14 -8 -17 -18Z" fill="${c.hair}" opacity=".22"/>`:'';
+  const hand=`<path d="M-6 78 Q-8.5 91 -4 98 Q0 102 4.5 98 Q9.5 91 7 78Z" fill="${c.skin}"/><path d="M5 82 Q10 85 8 92" stroke="${sk3}" stroke-width="1" fill="none" opacity=".6"/><rect x="-9" y="70" width="18" height="9" rx="3" fill="${c.shirt}"/>`;
+  return `<g class="ch" id="ch-${id}" data-mood="neutral" data-brow="flat" data-mouth="line" data-eye="open" data-head="up" style="opacity:0">${defs}
+  <ellipse cx="0" cy="2" rx="40" ry="7" fill="#000" opacity=".4"/>
   <g class="bob">
-    <g transform="translate(-13,-90)"><g class="leg lL"><rect x="-8" y="0" width="16" height="80" rx="7" fill="${c.pants}"/><ellipse cx="0" cy="83" rx="13" ry="6" fill="#0c0c10"/></g></g>
-    <g transform="translate(13,-90)"><g class="leg lR"><rect x="-8" y="0" width="16" height="80" rx="7" fill="${c.pants}"/><ellipse cx="0" cy="83" rx="13" ry="6" fill="#0c0c10"/></g></g>
-    <g transform="translate(-36,-170)"><g class="arm aL"><rect x="-8" y="-4" width="16" height="84" rx="8" fill="${c.suit}"/><circle cx="0" cy="84" r="8" fill="${c.skin}"/></g></g>
-    <path d="M-36 -168 Q-36 -181 -22 -183 L22 -183 Q36 -181 36 -168 L34 -82 Q0 -74 -34 -82 Z" fill="${c.suit}"/>
-    <path d="M-12 -183 L12 -183 L0 -144 Z" fill="${c.shirt}"/>
-    <path d="M-23 -183 L-12 -183 L0 -144 L-14 -118 L-25 -150Z" fill="${suit2}"/><path d="M23 -183 L12 -183 L0 -144 L14 -118 L25 -150Z" fill="${suit2}"/>
-    <path d="M-4.5 -168 L4.5 -168 L7.5 -128 L0 -117 L-7.5 -128Z" fill="${c.tie}"/><rect x="-5" y="-174" width="10" height="9" rx="2" fill="${mix(c.tie,-.2)}"/>
-    <rect x="-8" y="-192" width="16" height="16" fill="${sk2}"/>
-    <g transform="translate(0,-176)"><g class="head">
-      <ellipse cx="-22" cy="-22" rx="4.6" ry="6" fill="${sk2}"/><ellipse cx="22" cy="-22" rx="4.6" ry="6" fill="${sk2}"/>
-      <ellipse cx="0" cy="-24" rx="22" ry="26" fill="${c.skin}"/>
-      ${hairPath}
-      ${c.mustache?`<path d="M-13 -9 Q-6 -15 0 -11 Q6 -15 13 -9 Q6 -5 0 -8 Q-6 -5 -13 -9Z" fill="${c.hair}"/>`:''}
-      <path d="M0 -22 q3.5 7 0 9" stroke="${sk2}" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-      <g class="eyes">
-        <ellipse class="eye" cx="-9" cy="-25" rx="5.2" ry="5.6" fill="#fff"/><ellipse class="eye" cx="9" cy="-25" rx="5.2" ry="5.6" fill="#fff"/>
-        <circle class="pupil" cx="-9" cy="-25" r="2.8" fill="#1a1210"/><circle class="pupil" cx="9" cy="-25" r="2.8" fill="#1a1210"/>
-        <ellipse class="lid" cx="-9" cy="-25.6" rx="5.8" ry="6.2" fill="${c.skin}"/><ellipse class="lid" cx="9" cy="-25.6" rx="5.8" ry="6.2" fill="${c.skin}"/>
+    <g transform="translate(-13,-90)"><g class="leg lL"><path d="M-8.5 0 h17 l-1.5 80 h-14z" fill="${c.pants}"/><path d="M0 4 V76" stroke="${mix(c.pants,-.3)}" stroke-width="1" opacity=".6"/><path d="M-10 78 h19 q7 1 8 7 q0 5 -8 5 h-20 q-4 0 -3 -6z" fill="#0b0b0f"/><path d="M-6 80 h10" stroke="#555" stroke-width="1" opacity=".5"/></g></g>
+    <g transform="translate(13,-90)"><g class="leg lR"><path d="M-8.5 0 h17 l-1.5 80 h-14z" fill="${c.pants}"/><path d="M0 4 V76" stroke="${mix(c.pants,-.3)}" stroke-width="1" opacity=".6"/><path d="M-10 78 h19 q7 1 8 7 q0 5 -8 5 h-20 q-4 0 -3 -6z" fill="#0b0b0f"/><path d="M-6 80 h10" stroke="#555" stroke-width="1" opacity=".5"/></g></g>
+    <g transform="translate(-38,-168)"><g class="arm aL"><path d="M-9 -4 Q-11 40 -8 72 h16 Q12 40 9 -4Z" fill="url(#${g}J)"/>${hand}</g></g>
+    <path d="M-38 -166 C-38 -178 -27 -182 -14 -184 L14 -184 C27 -182 38 -178 38 -166 L36 -80 Q0 -71 -36 -80 Z" fill="url(#${g}J)"/>
+    <path d="M-7 -198 L7 -198 L9.5 -172 L-9.5 -172Z" fill="url(#${g}N)"/><path d="M-14 -184 L0 -170 L14 -184 L12 -150 L0 -140 L-12 -150Z" fill="${c.shirt}"/>
+    <path d="M-24 -183 L-13 -184 L0 -142 L-15 -112 L-27 -146Z" fill="${suit2}"/><path d="M24 -183 L13 -184 L0 -142 L15 -112 L27 -146Z" fill="${suit2}"/>
+    <path d="M-13 -184 L0 -172 L-9 -166Z M13 -184 L0 -172 L9 -166Z" fill="${mix(c.shirt,-.12)}"/>
+    <path d="M-5 -171 L5 -171 L8 -126 L0 -114 L-8 -126Z" fill="url(#${g}T)"/><path d="M-5 -172 h10 l-1 7 h-8z" fill="${mix(c.tie,-.25)}"/><path d="M-2 -158 L3 -128" stroke="#fff" stroke-width=".8" opacity=".15"/>
+    ${c.pocket?`<path d="M18 -142 l9 -1 l-1 7 h-8z" fill="#f4f1e6"/>`:''}<circle cx="0" cy="-104" r="1.8" fill="${mix(c.suit,.35)}" opacity=".7"/>
+    <path d="M-30 -166 C-25 -150 -24 -120 -26 -90" stroke="#000" stroke-width="6" opacity=".12" fill="none"/>
+    <g transform="translate(0,-186) scale(.9)"><g class="head"><g class="nod">
+      <ellipse cx="-19.5" cy="-27" rx="4" ry="6.2" fill="${c.skin}"/><ellipse cx="19.5" cy="-27" rx="4" ry="6.2" fill="${c.skin}"/><path d="M-19 -29 q-2 3 0 6 M19 -29 q2 3 0 6" stroke="${sk3}" stroke-width=".9" fill="none" opacity=".6"/>
+      <path d="M-19 -30 C-20 -48 -10 -54 0 -54 C10 -54 20 -48 19 -30 C19 -16 12 -2 0 2 C-12 -2 -19 -16 -19 -30Z" fill="url(#${g}F)"/>
+      <path d="M-19 -26 C-18 -12 -11 -1 0 2 C-8 -4 -13 -14 -15 -26Z M19 -26 C18 -12 11 -1 0 2 C8 -4 13 -14 15 -26Z" fill="${sk3}" opacity=".3"/>
+      ${stub}${hair}${wr}
+      ${c.mustache?`<path d="M-12 -11 Q-6 -16 0 -12.5 Q6 -16 12 -11 Q6 -7 0 -9.5 Q-6 -7 -12 -11Z" fill="${hairL}"/>`:''}
+      <path d="M0 -29 C-1 -23 -3 -18 -4.5 -15.5 Q0 -12.6 4.5 -15.5 C3 -18 1 -23 0 -29" stroke="${sk3}" stroke-width="1.1" fill="none" opacity=".75" stroke-linejoin="round"/><ellipse cx="-2.6" cy="-15" rx="1.1" ry=".7" fill="${sk3}" opacity=".7"/><ellipse cx="2.6" cy="-15" rx="1.1" ry=".7" fill="${sk3}" opacity=".7"/>
+      <g class="eyes" style="animation-delay:${({chief:0,newbie:1.3,ceo:2.4}[id]||0)}s">${eyeAt(-8.5)}${eyeAt(8.5)}</g>
+      ${frame}
+      <rect class="brow bL" x="-14.5" y="-37" width="11.5" height="3" rx="1.5" fill="${hair2}"/><rect class="brow bR" x="3" y="-37" width="11.5" height="3" rx="1.5" fill="${hair2}"/>
+      <g class="mouths" fill="none" stroke="#7a3d3d" stroke-width="1.9" stroke-linecap="round">
+        <path class="mo m-line" d="M-5.5 -7.5 Q0 -6.5 5.5 -7.5"/><path class="mo m-frown" d="M-6 -5.5 Q0 -10.5 6 -5.5"/>
+        <path class="mo m-smile" d="M-7 -9 Q0 -3 7 -9"/><path class="mo m-smirk" d="M-6 -7.5 Q2 -6.5 7 -12"/>
+        <ellipse class="mo m-o" cx="0" cy="-6.5" rx="3.2" ry="4.2" fill="#4a1c1c" stroke="none"/>
+        <g class="mo m-talk" stroke="none"><path d="M-6 -9 Q0 -12 6 -9 Q4.5 -2.5 0 -2.5 Q-4.5 -2.5 -6 -9Z" fill="#4a1c1c"/><path d="M-4.6 -9.1 Q0 -10.8 4.6 -9.1 L4.1 -7.4 Q0 -8.4 -4.1 -7.4Z" fill="#f3efe8"/></g>
       </g>
-      ${c.glasses?`<g fill="none" stroke="#15151a" stroke-width="1.7"><circle cx="-9" cy="-25" r="8.4"/><circle cx="9" cy="-25" r="8.4"/><path d="M-0.6 -25 H0.6"/><path d="M-17.4 -26 L-22 -28M17.4 -26 L22 -28"/></g>`:''}
-      <rect class="brow bL" x="-15" y="-37" width="12" height="2.8" rx="1.4" fill="${hair2}"/><rect class="brow bR" x="3" y="-37" width="12" height="2.8" rx="1.4" fill="${hair2}"/>
-      <g class="mouths" fill="none" stroke="#5a2a2a" stroke-width="2" stroke-linecap="round">
-        <path class="mo m-line" d="M-6 -8 H6"/><path class="mo m-frown" d="M-6.5 -5.5 Q0 -11.5 6.5 -5.5"/>
-        <path class="mo m-smile" d="M-7.5 -9.5 Q0 -2.5 7.5 -9.5"/><path class="mo m-smirk" d="M-6.5 -8 Q2 -6.5 7.5 -12.5"/>
-        <ellipse class="mo m-o" cx="0" cy="-7" rx="3.4" ry="4.4" fill="#5a1f1f" stroke="none"/>
-        <ellipse class="mo m-talk" cx="0" cy="-8" rx="5.2" ry="4" fill="#5a1f1f" stroke="none"/>
-      </g>
-      <path class="sweat" d="M25 -42 q5 8 0 11 q-5 -3 0 -11z" fill="#8fd3ff"/>
-    </g></g>
-    <g transform="translate(36,-170)"><g class="arm aR"><rect x="-8" y="-4" width="16" height="84" rx="8" fill="${c.suit}"/><circle cx="0" cy="84" r="8" fill="${c.skin}"/>
+      <path class="sweat" d="M24 -44 q5 8 0 11 q-5 -3 0 -11z" fill="#8fd3ff" opacity=".85"/>
+    </g></g></g>
+    <g transform="translate(38,-168)"><g class="arm aR"><path d="M-9 -4 Q-11 40 -8 72 h16 Q12 40 9 -4Z" fill="url(#${g}J)"/>${hand}
       ${c.held?`<g class="held"><rect x="-6" y="70" width="34" height="42" rx="2.5" fill="#d7b25a" transform="rotate(8 10 90)"/><rect x="-2" y="76" width="22" height="2.4" fill="#a8863a" transform="rotate(8 10 90)"/><rect x="-2" y="82" width="26" height="2.4" fill="#a8863a" transform="rotate(8 10 90)"/></g>`:''}
     </g></g>
   </g></g>`.replace(/\n\s*/g,'');
@@ -80,6 +93,7 @@ function sceneSVG(Rl){
 <radialGradient id="rlLamp" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffd58a" stop-opacity=".8"/><stop offset="1" stop-color="#ffd58a" stop-opacity="0"/></radialGradient>
 <linearGradient id="rlCone" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd58a" stop-opacity=".5"/><stop offset="1" stop-color="#ffd58a" stop-opacity="0"/></linearGradient>
 <linearGradient id="rlStreak" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd98a" stop-opacity=".22"/><stop offset="1" stop-color="#ffd98a" stop-opacity="0"/></linearGradient>
+<linearGradient id="rlHaze" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6f7bd6" stop-opacity="0"/><stop offset="1" stop-color="#8a90e0" stop-opacity=".28"/></linearGradient>
 <linearGradient id="rlWood" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6a4630"/><stop offset="1" stop-color="#3a2519"/></linearGradient>
 </defs>
 <g id="rl-world">
@@ -89,6 +103,7 @@ ${skyline()}
 <g fill="#07091a"><rect x="0" y="26" width="720" height="4"/><rect x="-2" y="26" width="6" height="404"/><rect x="178" y="26" width="5" height="404"/><rect x="358" y="26" width="5" height="404"/><rect x="538" y="26" width="5" height="404"/><rect x="716" y="26" width="6" height="404"/><rect x="0" y="426" width="720" height="6"/></g>
 <rect width="720" height="26" fill="#05060d"/>
 <g fill="#ffe7b0" opacity=".55"><ellipse cx="90" cy="20" rx="14" ry="2.5"/><ellipse cx="270" cy="20" rx="14" ry="2.5"/><ellipse cx="450" cy="20" rx="14" ry="2.5"/><ellipse cx="630" cy="20" rx="14" ry="2.5"/></g>
+<rect y="330" width="720" height="100" fill="url(#rlHaze)"/>
 <rect y="430" width="720" height="210" fill="url(#rlFloor)"/>
 <g fill="url(#rlStreak)"><rect x="60" y="432" width="14" height="150"/><rect x="150" y="432" width="9" height="120"/><rect x="250" y="432" width="16" height="170"/><rect x="340" y="432" width="8" height="110"/><rect x="600" y="432" width="14" height="150"/></g>
 <rect x="250" y="520" width="460" height="100" rx="10" fill="#1a1d2c" opacity=".85"/>
@@ -99,6 +114,7 @@ ${skyline()}
 <ellipse cx="540" cy="520" rx="200" ry="14" fill="#000" opacity=".35"/>
 <rect x="484" y="296" width="96" height="150" rx="26" fill="#2a2d3f"/><rect x="500" y="282" width="64" height="30" rx="14" fill="#34384d"/>
 ${chars('chief')}
+<ellipse cx="515" cy="325" rx="70" ry="80" fill="url(#rlLamp)" opacity=".22"/>
 <polygon points="360,408 705,408 716,421 349,421" fill="#7c5339"/><rect x="349" y="421" width="367" height="95" fill="url(#rlWood)"/>
 <g fill="#2a1a11" opacity=".7"><rect x="372" y="436" width="150" height="62" rx="3"/><rect x="543" y="436" width="150" height="62" rx="3"/></g><g fill="#c8a066"><rect x="440" y="462" width="14" height="3" rx="1.5"/><rect x="612" y="462" width="14" height="3" rx="1.5"/></g>
 <g><ellipse cx="410" cy="407" rx="16" ry="3.4" fill="#16171f"/><path d="M410 406 L420 366 L446 346" stroke="#1d1f2a" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M438 342 L462 352 L452 366 Z" fill="#222534"/>
@@ -153,6 +169,11 @@ body.rl-on main{max-width:none;padding:0}
 .rl-dots{position:absolute;inset-inline-start:8px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:6px;z-index:5;pointer-events:none}.rl-dots i{width:5px;height:5px;border-radius:50%;background:rgba(255,255,255,.4)}.rl-dots i.on{background:#fff;height:16px;border-radius:3px}
 .rl-blink{animation:rlBl 2.2s steps(1) infinite}@keyframes rlBl{0%,60%{opacity:1}61%,100%{opacity:.1}}
 /* characters */
+.ch .eyes{transform-box:fill-box;transform-origin:50% 50%;animation:rlBlink 4.6s infinite}
+@keyframes rlBlink{0%,93%,100%{transform:scaleY(1)}96%{transform:scaleY(.08)}}
+.ch .nod{transform-box:view-box;transform-origin:0 0}
+.ch[data-talk="1"] .nod{animation:rlNod 1s ease-in-out infinite alternate}
+@keyframes rlNod{from{transform:rotate(-1.4deg) translateY(0)}to{transform:rotate(1.4deg) translateY(-1px)}}
 .ch{transition:transform 1s linear,opacity .3s}
 .ch .leg,.ch .arm{transform-box:view-box;transform-origin:0 0;transition:transform .35s ease}
 .ch .head{transform-box:view-box;transform-origin:0 0;transition:transform .4s ease}
@@ -164,14 +185,14 @@ body.rl-on main{max-width:none;padding:0}
 @keyframes rlSw{from{transform:rotate(-22deg)}to{transform:rotate(22deg)}}
 .ch.g-hand .aR{transform:rotate(-82deg)!important;animation:none!important}
 .ch .held{display:none}.ch.holding .held{display:inline}
-.ch .pupil{transform:translate(var(--look,0px),var(--ly,0px));transition:transform .3s}
+.ch .pupil{transform:translate(calc(var(--look,0px)*.8),var(--ly,0px));transition:transform .3s}
 .ch .eye,.ch .lid,.ch .brow{transform-box:fill-box;transform-origin:50% 50%;transition:transform .25s}
 .ch .lid{transform-origin:50% 0;transform:scaleY(var(--lid,0))}
 .ch .mo,.ch .sweat{display:none}
 .ch[data-mouth=line] .m-line,.ch[data-mouth=frown] .m-frown,.ch[data-mouth=smile] .m-smile,.ch[data-mouth=smirk] .m-smirk,.ch[data-mouth=o] .m-o{display:inline}
 .ch[data-talk="1"] .mo{display:none!important}.ch[data-talk="1"] .m-talk{display:inline!important;transform-box:fill-box;transform-origin:50% 50%;animation:rlTalk .2s ease-in-out infinite alternate}
 @keyframes rlTalk{from{transform:scaleY(.25)}to{transform:scaleY(1.05)}}
-.ch[data-eye=half]{--lid:.38}.ch[data-eye=down]{--lid:.45;--ly:2.4px}.ch[data-eye=wide] .eye{transform:scale(1.22)}.ch[data-eye=wide] .pupil{r:2.3px}
+.ch[data-eye=half]{--lid:.38}.ch[data-eye=down]{--lid:.45;--ly:2.4px}.ch[data-eye=wide] .eye{transform:scale(1.25)}
 .ch[data-head=down] .head{transform:rotate(7deg) translateY(3px)}
 .ch[data-brow=worried] .bL{transform:rotate(-16deg) translateY(-1px)}.ch[data-brow=worried] .bR{transform:rotate(16deg) translateY(-1px)}
 .ch[data-brow=angry] .bL{transform:rotate(17deg) translateY(2px)}.ch[data-brow=angry] .bR{transform:rotate(-17deg) translateY(2px)}

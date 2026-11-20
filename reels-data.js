@@ -13,9 +13,9 @@
   id:'r01-integrity', ch:1, std:'IESBA Code of Ethics', tag:'الأخلاقيات',
   title:'ميزانية على المقاس', sub:'مبدأ النزاهة · Integrity', secs:60,
   cast:{
-    chief:{name:'رئيس الحسابات',color:'#e0674f',skin:'#d6a07a',hair:'#17171c',suit:'#1d2740',pants:'#141b2e',shirt:'#eef1f5',tie:'#8d1f2e',glasses:true,pitch:.78,rate:.95,look:-1},
-    newbie:{name:'المحاسب الجديد',color:'#3fb6a0',skin:'#c48a63',hair:'#2b1b12',suit:'#566574',pants:'#3a4350',shirt:'#dbe7f3',tie:'#2f7f6e',held:true,pitch:1.18,rate:1.02,look:1},
-    ceo:{name:'رئيس مجلس الإدارة',color:'#e3b64b',darkChip:true,skin:'#deb08d',hair:'#b9bcc4',suit:'#0e0f13',pants:'#0e0f13',shirt:'#ffffff',tie:'#c19a2e',mustache:true,pitch:.68,rate:.9,look:1}
+    chief:{name:'رئيس الحسابات',color:'#e0674f',skin:'#d6a07a',hair:'#17171c',suit:'#1d2740',pants:'#141b2e',shirt:'#eef1f5',tie:'#8d1f2e',glasses:true,age:'old',pocket:true,pitch:.78,rate:.95,look:-1},
+    newbie:{name:'المحاسب الجديد',color:'#3fb6a0',skin:'#c48a63',hair:'#2b1b12',suit:'#566574',pants:'#3a4350',shirt:'#dbe7f3',tie:'#2f7f6e',held:true,hairStyle:'young',stubble:true,pitch:1.18,rate:1.02,look:1},
+    ceo:{name:'رئيس مجلس الإدارة',color:'#e3b64b',darkChip:true,skin:'#deb08d',hair:'#b9bcc4',suit:'#0e0f13',pants:'#0e0f13',shirt:'#ffffff',tie:'#c19a2e',mustache:true,age:'old',pocket:true,pitch:.68,rate:.9,look:1}
   },
   stage:{chief:{x:530,y:520,s:1},newbie:{x:110,y:565,s:1.1},ceo:{x:110,y:565,s:1.1}},
   cams:{chief:[530,300,2.4],two:[432,330,1.1],wide:[432,320,1],new:[338,345,2.4]},
