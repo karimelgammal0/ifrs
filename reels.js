@@ -142,7 +142,7 @@ body.rl-on main{max-width:none;padding:0}
 .rl-poster[hidden],.rl-end[hidden]{display:none}
 .rl-poster h2{margin:0;font-size:clamp(24px,9cqw,40px);line-height:1.25}.rl-poster p{margin:0;color:#c5cdf5;font-size:clamp(13px,4cqw,17px)}
 .rl-play{width:76px;height:76px;border-radius:50%;border:0;background:#fff;color:#0b1030;font-size:1.9rem;display:grid;place-items:center;padding:0 0 0 5px;box-shadow:0 8px 30px rgba(0,0,0,.5)}
-.rl-note{font-size:.78rem;color:#ffd98a;max-width:28ch}
+.rl-note{font-size:.78rem;color:#ffd98a;max-width:34ch;line-height:1.6}
 .rl-k{font-size:.8rem;color:#9fb0ff;letter-spacing:.04em}.rl-big{font-size:clamp(30px,11cqw,50px);font-weight:700;line-height:1.2}.rl-big em{display:block;font-style:normal;font-family:var(--f-en);font-size:.5em;color:#ff8d7e;direction:ltr}
 .rl-def{margin:0;font-size:clamp(13px,4cqw,16px);color:#e1e6ff;line-height:1.7}
 .rl-five{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;direction:ltr;margin:2px 0}.rl-five span{font-family:var(--f-en);font-size:clamp(10px,3cqw,13px);padding:3px 10px;border-radius:99px;border:1px solid rgba(255,255,255,.22);color:#c5cdf5}
@@ -282,9 +282,32 @@ function reset(){
   const rep=$('#rl-report');if(rep){rep.style.transition='none';rep.style.opacity=0}
   ['#rlsub','#rlslug','#rlcap'].forEach(s=>$(s).classList.remove('on'));
 }
-function prog(){const p=$('#rlp');if(p)p.style.width=(S.beat/R().beats.length*100)+'%'}
+const total=()=>S.clips?R().shots.length:R().beats.length;
+function prog(){const p=$('#rlp');if(p)p.style.width=(S.beat/total()*100)+'%'}
+async function playClips(tok){
+  const Rl=R(),v=$('#rlvid'),box=$('#rlsub');
+  S.paused=false;S.started=true;$('#rls').classList.remove('paused');$('#rlposter').hidden=true;$('#rlend').hidden=true;
+  const svg=$('.rl-svg');if(svg)svg.style.display='none';v.style.display='block';$('#rlfade').style.opacity=0;
+  for(let i=0;i<Rl.shots.length;i++){
+    if(tok!==S.tok)return;S.beat=i;prog();
+    const sh=Rl.shots[i],c=Rl.cast[sh.who];let ok=true;
+    if(sh.t&&c){box.innerHTML=`<b class="${c.darkChip?'dk':''}" style="--c:${c.color}">${esc(c.name)}</b><span>${esc(sh.t)}</span>`;box.classList.add('on')}
+    v.muted=!S.sound;v.onerror=()=>{ok=false};v.src=sh.video;
+    try{await v.play()}catch(e){ok=false}
+    if(!ok)await sleep(2600,tok);
+    else await new Promise(res=>{const iv=setInterval(()=>{
+      if(tok!==S.tok){clearInterval(iv);res()}
+      else if(S.paused)return;
+      else if(!ok||v.ended||(sh.trim&&v.currentTime>=sh.trim)){clearInterval(iv);res()}
+    },100)});
+    try{v.pause()}catch(e){}box.classList.remove('on');
+    if(tok!==S.tok)return;await gate(tok);
+  }
+  if(tok!==S.tok)return;S.beat=Rl.shots.length;prog();finish();
+}
 async function play(){
   const tok=++S.tok,Rl=R();S.paused=false;S.started=true;
+  if(S.clips)return playClips(tok);
   $('#rls').classList.remove('paused');$('#rlposter').hidden=true;$('#rlend').hidden=true;
   reset();cam('chief',0);$('#rlfade').style.transition='none';$('#rlfade').style.opacity=1;
   for(let i=0;i<Rl.beats.length;i++){
@@ -300,6 +323,7 @@ function finish(){
 }
 function setPause(p){
   if(!S.started)return;S.paused=p;const st=$('#rls');if(!st)return;st.classList.toggle('paused',p);
+  if(S.clips){const v=$('#rlvid');try{p?v.pause():v.play()}catch(e){}}
   const fl=$('#rlflash');fl.textContent=p?'⏸':'▶';if(!p){fl.classList.remove('pop');void fl.offsetWidth;fl.classList.add('pop')}
 }
 function unlockTTS(){if(!TTS)return;try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u)}catch(e){}}
@@ -307,7 +331,7 @@ function unlockTTS(){if(!TTS)return;try{const u=new SpeechSynthesisUtterance(' '
 /* ---------- views ---------- */
 function posterHTML(Rl){
   const names=Object.keys(Rl.cast).length;
-  const note=!TTS||!haveVoice()?'<div class="rl-note" id="rlnote">مفيش صوت عربي على جهازك دلوقتي — هتشوف المشهد بالترجمة بس.</div>':'<div class="rl-note" id="rlnote" hidden></div>';
+  const note=!TTS||!haveVoice()?'<div class="rl-note" id="rlnote">مفيش صوت عربي على جهازك. أندرويد: الإعدادات ← تحويل النص إلى كلام ← Google ← نزّل بيانات صوت عربي (مصر). لحد كده هتشوف المشهد بالترجمة.</div>':'<div class="rl-note" id="rlnote" hidden></div>';
   return `<div class="rl-poster" id="rlposter"><span class="rl-pill">🎬 ${esc(Rl.tag||'ريل')} · فصل ${esc(Rl.ch)}</span><h2>${esc(Rl.title)}</h2><p>${esc(Rl.sub)}</p>
 <button class="rl-play" data-rl="play" aria-label="تشغيل">▶</button><p>⏱ حوالي ${Rl.secs||60} ثانية · 🎭 ${names} شخصيات${SEEN[Rl.id]?' · ✓ شاهدته':''}</p>${note}</div>`;
 }
@@ -322,7 +346,7 @@ function view(){
   injectCSS();const all=REELS();if(!all.length)return '<div class="card" style="margin:16px">مفيش ريلز لسه.</div>';
   if(S.idx>=all.length)S.idx=0;const Rl=R();
   const dots=all.length>1?`<div class="rl-dots">${all.map((_,i)=>`<i class="${i===S.idx?'on':''}"></i>`).join('')}</div>`:'';
-  const media=Rl.video?`<video class="rl-vid" src="${esc(Rl.video)}" playsinline loop controls></video>`:sceneSVG(Rl);
+  const media=Rl.video?`<video class="rl-vid" src="${esc(Rl.video)}" playsinline loop controls></video>`:sceneSVG(Rl)+(Rl.shots&&Rl.shots.length?'<video class="rl-vid" id="rlvid" playsinline preload="auto" style="display:none"></video>':'');
   return `<div class="rl-wrap" id="rlw"><div class="rl-stage" id="rls">${media}<div class="rl-vig"></div>
 <div class="rl-top"><div class="rl-prog"><i id="rlp"></i></div><div class="rl-chips"><span class="rl-pill">📖 فصل ${esc(Rl.ch)} · ${esc(Rl.std||'')}</span><span class="grow"></span><button class="rl-ib" data-rl="sound" id="rlsnd" aria-label="الصوت">${S.sound?'🔊':'🔇'}</button></div></div>
 <div class="rl-slug" id="rlslug"></div><div class="rl-cap" id="rlcap"></div><div class="rl-sub" id="rlsub"></div><div class="rl-flash" id="rlflash">⏸</div><div class="rl-fade" id="rlfade"></div>${dots}
@@ -340,7 +364,7 @@ function onClick(e){
   if(b){
     const a=b.dataset.rl;
     if(a==='play'){unlockTTS();play()}
-    else if(a==='sound'){S.sound=!S.sound;b.textContent=S.sound?'🔊':'🔇';if(!S.sound&&TTS)speechSynthesis.cancel()}
+    else if(a==='sound'){S.sound=!S.sound;b.textContent=S.sound?'🔊':'🔇';const vv=$('#rlvid');if(vv)vv.muted=!S.sound;if(!S.sound&&TTS)speechSynthesis.cancel()}
     return;
   }
   if(e.target.closest('[data-act]'))return;
@@ -355,6 +379,8 @@ function mount(root){
   S.root=root;S.started=false;S.paused=false;S.tok++;
   document.body.classList.add('rl-on');size();
   const Rl=R();if(!Rl||Rl.video)return;
+  S.clips=false;
+  if(Rl.shots&&Rl.shots.length){try{fetch(Rl.shots[0].video,{method:'HEAD'}).then(r=>{if(r.ok&&S.root===root){S.clips=true;const n=$('#rlnote');if(n)n.hidden=true}}).catch(()=>{})}catch(e){}}
   reset();cam('wide',0);const f=$('#rlfade');if(f){f.style.transition='none';f.style.opacity=.25}
   if(!bound){
     bound=true;document.addEventListener('click',onClick);
