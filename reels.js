@@ -347,6 +347,20 @@ function setPause(p){
   if(S.clips){const v=$('#rlvid');try{p?v.pause():v.play()}catch(e){}}
   const fl=$('#rlflash');fl.textContent=p?'⏸':'▶';if(!p){fl.classList.remove('pop');void fl.offsetWidth;fl.classList.add('pop')}
 }
+function testVoice(){
+  const o=$('#rlvs');if(!o)return;
+  if(!TTS){o.textContent='❌ المتصفح ده مش بيدعم النطق. جرّب Chrome.';return}
+  loadVoices();
+  const all=speechSynthesis.getVoices();
+  if(!VO.length){o.textContent='❌ مفيش صوت عربي على الجهاز (الأصوات المتاحة: '+all.length+'). نزّل صوت عربي من إعدادات تحويل النص إلى كلام.';return}
+  const v=VO[0];let started=false;
+  const u=new SpeechSynthesisUtterance('أهلاً، ده اختبار الصوت العربي');u.voice=v;u.lang=v.lang;
+  u.onstart=()=>{started=true;o.textContent='✅ الصوت شغال: '+v.name+' ('+v.lang+'). لو مسمعتش حاجة ارفع صوت الوسائط.'};
+  u.onerror=e=>{o.textContent='❌ حصل خطأ في النطق: '+(e.error||'')};
+  o.textContent='⏳ بجرّب… ('+v.name+')';
+  try{speechSynthesis.cancel();speechSynthesis.speak(u)}catch(e){o.textContent='❌ المتصفح منع النطق';return}
+  setTimeout(()=>{if(!started)o.textContent='⚠️ فيه صوت عربي ('+v.name+') لكن مفيش نطق بدأ. غالباً الصفحة معزولة أو الصوت مكتوم. جرّب الموقع بعد النشر.'},2500);
+}
 function unlockTTS(){if(!TTS)return;try{const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u)}catch(e){}}
 
 /* ---------- views ---------- */
@@ -354,7 +368,7 @@ function posterHTML(Rl){
   const names=Object.keys(Rl.cast).length;
   const note=!TTS||!haveVoice()?'<div class="rl-note" id="rlnote">مفيش صوت عربي على جهازك. أندرويد: الإعدادات ← تحويل النص إلى كلام ← Google ← نزّل بيانات صوت عربي (مصر). لحد كده هتشوف المشهد بالترجمة.</div>':'<div class="rl-note" id="rlnote" hidden></div>';
   return `<div class="rl-poster" id="rlposter"><span class="rl-pill">🎬 ${esc(Rl.tag||'ريل')} · فصل ${esc(Rl.ch)}</span><h2>${esc(Rl.title)}</h2><p>${esc(Rl.sub)}</p>
-<button class="rl-play" data-rl="play" aria-label="تشغيل">▶</button><p>⏱ حوالي ${Rl.secs||60} ثانية · 🎭 ${names} شخصيات${SEEN[Rl.id]?' · ✓ شاهدته':''}</p>${note}</div>`;
+<button class="rl-play" data-rl="play" aria-label="تشغيل">▶</button><p>⏱ حوالي ${Rl.secs||60} ثانية · 🎭 ${names} شخصيات${SEEN[Rl.id]?' · ✓ شاهدته':''}</p>${note}<button class="rl-btn" data-rl="test">🔈 جرّب الصوت</button><div class="rl-note" id="rlvs" style="color:#c5cdf5"></div></div>`;
 }
 function endHTML(Rl){
   const L=Rl.lesson;if(!L)return `<div class="rl-end" id="rlend" hidden><div class="rl-btns"><button class="rl-btn" data-rl="play">↻ أعد المشاهدة</button></div></div>`;
@@ -385,6 +399,7 @@ function onClick(e){
   if(b){
     const a=b.dataset.rl;
     if(a==='play'){unlockTTS();play()}
+    else if(a==='test'){testVoice()}
     else if(a==='sound'){S.sound=!S.sound;b.textContent=S.sound?'🔊':'🔇';const vv=$('#rlvid');if(vv)vv.muted=!S.sound;if(!S.sound&&TTS)speechSynthesis.cancel()}
     return;
   }
